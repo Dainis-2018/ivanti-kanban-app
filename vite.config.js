@@ -1,39 +1,109 @@
-import { defineConfig } from 'vite'
+// vite.config.js - Fixed Proxy Configuration for Ivanti
+import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'node:url'
 
-export default defineConfig({
-  plugins: [vue()],
-  resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
-    }
-  },
-  server: {
-    port: process.env.VITE_DEV_SERVER_PORT || 3000,
-    proxy: {
-      '/api': {
-        target: process.env.VITE_API_BASE_URL || 'https://ivanti/HEAT/',
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/api/, '')
+export default defineConfig(({ command, mode }) => {
+  // Load env file based on `mode` in the current working directory
+  const env = loadEnv(mode, process.cwd(), '')
+  
+  return {
+    plugins: [vue()],
+    
+    resolve: {
+      alias: {
+        '@': fileURLToPath(new URL('./src', import.meta.url))
       }
-    }
-  },
-  build: {
-    outDir: 'dist',
-    assetsDir: 'assets',
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['vue', 'vue-router', 'pinia'],
-          syncfusion: [
-            '@syncfusion/ej2-vue-kanban',
-            '@syncfusion/ej2-vue-richtexteditor',
-            '@syncfusion/ej2-vue-calendars'
-          ]
+    },
+    
+    server: {
+      host: 'localhost',
+      port: parseInt(env.VITE_DEV_SERVER_PORT) || 3000,
+      open: true,
+      cors: true,
+      
+      // Fixed proxy configuration
+      proxy: {
+        // Proxy all /api requests to Ivanti server
+        '/api': {
+          target: (env.VITE_PROXY_TARGET || 'https://ivanti').replace(/\/+$/, ''), // Remove trailing slashes
+          changeOrigin: true,
+          secure: false, // Set to true if using valid HTTPS certificates
+          
+          // Rewrite the path - replace /api with /HEAT/api
+          rewrite: (path) => {
+            const newPath = path.replace(/^\/api/, '/HEAT/api')
+            console.log(`Proxy rewrite: ${path} -> ${newPath}`)
+            return newPath
+          },
+          
+          // Configure proxy events for debugging
+          configure: (proxy, options) => {
+            proxy.on('error', (err, req, res) => {
+              console.error('Proxy error:', err)
+            })
+            
+            proxy.on('proxyReq', (proxyReq, req, res) => {
+              console.log(`Proxying request: ${req.method} ${req.url} -> ${options.target}${proxyReq.path}`)
+            })
+            
+            proxy.on('proxyRes', (proxyRes, req, res) => {
+              console.log(`Proxy response: ${proxyRes.statusCode} for ${req.url}`)
+            })
+          },
+          
+          // Additional headers for Ivanti
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
         }
       }
+    },
+    
+    build: {
+      target: 'esnext',
+      outDir: 'dist',
+      assetsDir: 'assets',
+      sourcemap: false,
+      minify: 'terser',
+      
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['vue', 'vue-router', 'pinia', 'axios'],
+            syncfusion: [
+              '@syncfusion/ej2-vue-kanban',
+              '@syncfusion/ej2-vue-richtexteditor',
+              '@syncfusion/ej2-vue-calendars',
+              '@syncfusion/ej2-vue-dropdowns',
+              '@syncfusion/ej2-vue-buttons',
+              '@syncfusion/ej2-vue-inputs',
+              '@syncfusion/ej2-vue-notifications',
+              '@syncfusion/ej2-vue-grids',
+              '@syncfusion/ej2-vue-schedule'
+            ],
+            ui: ['vue-toastification']
+          }
+        }
+      }
+    },
+    
+    // Environment variables
+    define: {
+      __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '1.0.0'),
+      __BUILD_TIME__: JSON.stringify(new Date().toISOString())
+    },
+    
+    // Optimization
+    optimizeDeps: {
+      include: [
+        'vue',
+        'vue-router', 
+        'pinia',
+        'axios',
+        'vue-toastification'
+      ]
     }
   }
 })

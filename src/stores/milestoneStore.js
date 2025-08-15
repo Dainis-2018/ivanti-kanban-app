@@ -61,36 +61,26 @@ export const useMilestoneStore = defineStore('milestones', () => {
     }
   }
 
-  // Mock API actions until ODataService is implemented
+  // API actions using fixed ODataService
   const fetchMilestonesByProject = async (projectId) => {
     setLoading(true)
     setError(null)
     
     try {
-      // Mock data for now - replace with actual ODataService call
-      const mockMilestones = [
-        {
-          PhaseId: '1',
-          PhaseName: 'Planning Phase',
-          ProjectId: projectId,
-          Status: 'Active',
-          StartDate: '2024-01-01',
-          EndDate: '2024-02-01',
-          Description: 'Initial planning phase'
-        },
-        {
-          PhaseId: '2',
-          PhaseName: 'Development Phase',
-          ProjectId: projectId,
-          Status: 'Planned',
-          StartDate: '2024-02-01',
-          EndDate: '2024-04-01',
-          Description: 'Development and implementation'
-        }
-      ]
+      // Use the fixed ODataService method that handles Ivanti relationships
+      const response = await import('@/services/odataService').then(module => 
+        module.ODataService.getMilestonesByProject(projectId)
+      )
       
-      setMilestones(mockMilestones)
-      return mockMilestones
+      const projectMilestones = response.value || response || []
+      
+      // Update milestones for this project in the store
+      const otherMilestones = milestones.value.filter(m => 
+        !projectMilestones.some(pm => pm.PhaseId === m.PhaseId)
+      )
+      setMilestones([...otherMilestones, ...projectMilestones])
+      
+      return projectMilestones
     } catch (err) {
       console.error('Failed to fetch milestones:', err)
       setError(err.message || 'Failed to fetch milestones')
@@ -105,13 +95,10 @@ export const useMilestoneStore = defineStore('milestones', () => {
     setError(null)
     
     try {
-      // Mock implementation
-      const milestone = milestones.value.find(m => m.PhaseId === milestoneId)
-      if (milestone) {
-        setCurrentMilestone(milestone)
-        return milestone
-      }
-      throw new Error('Milestone not found')
+      const { ODataService } = await import('@/services/odataService')
+      const response = await ODataService.getById('frs_prj_phases', milestoneId)
+      setCurrentMilestone(response)
+      return response
     } catch (err) {
       console.error('Failed to fetch milestone:', err)
       setError(err.message || 'Failed to fetch milestone')
@@ -126,7 +113,8 @@ export const useMilestoneStore = defineStore('milestones', () => {
     setError(null)
     
     try {
-      // Mock implementation
+      const { ODataService } = await import('@/services/odataService')
+      await ODataService.delete('frs_prj_phases', milestoneId)
       removeMilestone(milestoneId)
       return true
     } catch (err) {
