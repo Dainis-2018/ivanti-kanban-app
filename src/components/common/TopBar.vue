@@ -55,11 +55,15 @@
 
       <!-- Actions Section -->
       <div class="actions-section">
-        <ejs-dropdownbutton
-          :items="languageItems"
-          iconCss="e-icons e-world"
+        <!-- Language Selector using DropDownList instead of DropDownButton -->
+        <ejs-dropdownlist
+          :dataSource="languageItems"
+          :fields="{ text: 'text', value: 'id' }"
+          :value="currentLanguage"
           cssClass="language-selector"
-          @select="handleLanguageChange"
+          iconCss="e-icons e-world"
+          :placeholder="t('language.select')"
+          @change="handleLanguageChange"
         />
         <ejs-button
           iconCss="e-icons e-refresh"
@@ -94,7 +98,7 @@ export default {
   emits: ['search', 'filter', 'view-change', 'refresh'],
   setup(props, { emit }) {
     const appStore = useAppStore()
-    const { t, setLocale, getAvailableLocales } = useLocalization()
+    const { t, setLocale, currentLocale } = useLocalization()
 
     const searchQuery = ref('')
     const showFilters = ref(false)
@@ -109,6 +113,8 @@ export default {
       { text: 'Deutsch', id: 'de' },
       { text: 'Français', id: 'fr' }
     ])
+
+    const currentLanguage = computed(() => currentLocale.value || 'en')
 
     const handleSearch = (args) => {
       searchQuery.value = args.value
@@ -125,7 +131,7 @@ export default {
 
     const handleLanguageChange = async (args) => {
       try {
-        await setLocale(args.item.id)
+        await setLocale(args.value)
       } catch (error) {
         console.error('Failed to change language:', error)
       }
@@ -153,6 +159,7 @@ export default {
       currentView,
       activeFiltersCount,
       languageItems,
+      currentLanguage,
       t,
       handleSearch,
       toggleFilters,
@@ -248,6 +255,10 @@ export default {
   gap: 8px;
 }
 
+.language-selector {
+  min-width: 120px;
+}
+
 .filters-panel {
   border-top: 1px solid #e0e0e0;
   background: #f8f9fa;
@@ -267,6 +278,10 @@ export default {
   }
 
   .view-buttons {
+    justify-content: center;
+  }
+
+  .actions-section {
     justify-content: center;
   }
 }

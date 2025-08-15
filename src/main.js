@@ -1,20 +1,26 @@
-// main.js - Application Entry Point
+// main.js - Application Entry Point with Proper Syncfusion Registration
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 
-// Syncfusion imports
+// Syncfusion license registration
 import { registerLicense } from '@syncfusion/ej2-base'
-import { KanbanPlugin } from '@syncfusion/ej2-vue-kanban'
+
+// Syncfusion Grid with required modules - use GridPlugin for proper initialization
+import { GridPlugin, Grid, Filter, Sort, Page, Reorder, Resize, ColumnChooser, ColumnMenu, Search, Selection } from '@syncfusion/ej2-vue-grids'
+
+// Other Syncfusion components
 import { RichTextEditorPlugin } from '@syncfusion/ej2-vue-richtexteditor'
 import { ButtonPlugin } from '@syncfusion/ej2-vue-buttons'
-import { DropDownListPlugin } from '@syncfusion/ej2-vue-dropdowns'
-import { DatePickerPlugin } from '@syncfusion/ej2-vue-calendars'
+import { DropDownListPlugin, MultiSelectPlugin } from '@syncfusion/ej2-vue-dropdowns'
+import { DatePickerPlugin, DateRangePickerPlugin } from '@syncfusion/ej2-vue-calendars'
 import { TextBoxPlugin } from '@syncfusion/ej2-vue-inputs'
 import { ToastPlugin } from '@syncfusion/ej2-vue-notifications'
-import { GridPlugin } from '@syncfusion/ej2-vue-grids'
 import { SchedulePlugin } from '@syncfusion/ej2-vue-schedule'
+
+// Import Kanban component only (not plugin to avoid conflicts)
+import { Kanban } from '@syncfusion/ej2-vue-kanban'
 
 // Toast notifications
 import Toast from 'vue-toastification'
@@ -28,6 +34,9 @@ import './assets/styles/syncfusion-theme.css'
 if (import.meta.env.VITE_SYNCFUSION_LICENSE_KEY) {
   registerLicense(import.meta.env.VITE_SYNCFUSION_LICENSE_KEY)
 }
+
+// IMPORTANT: Inject Grid feature modules BEFORE creating the app
+Grid.Inject(Filter, Sort, Page, Reorder, Resize, ColumnChooser, ColumnMenu, Search, Selection)
 
 const app = createApp(App)
 
@@ -47,20 +56,42 @@ const toastOptions = {
   rtl: false
 }
 
-// Register plugins
+// Register core plugins
 app.use(createPinia())
 app.use(router)
 app.use(Toast, toastOptions)
 
-// Register Syncfusion components
-app.use(KanbanPlugin)
+// Register Syncfusion components in order
+// 1. Grid first (provides column components)
+app.use(GridPlugin)
+
+// 2. Other components that don't conflict
 app.use(RichTextEditorPlugin)
 app.use(ButtonPlugin)
 app.use(DropDownListPlugin)
+app.use(MultiSelectPlugin)
 app.use(DatePickerPlugin)
+app.use(DateRangePickerPlugin)
 app.use(TextBoxPlugin)
 app.use(ToastPlugin)
-app.use(GridPlugin)
 app.use(SchedulePlugin)
 
+// 3. Manual Kanban registration to avoid column component conflicts
+app.component('ejs-kanban', Kanban)
+
+// Mount the application
 app.mount('#app')
+
+// Enable development tools
+if (import.meta.env.DEV) {
+  console.log('🚀 Ivanti Kanban App started in development mode')
+  console.log('📊 Syncfusion Grid modules injected:', [
+    'Filter', 'Sort', 'Page', 'Reorder', 'Resize', 'ColumnChooser', 'ColumnMenu', 'Search', 'Selection'
+  ])
+  console.log('🔧 Syncfusion components registered:')
+  console.log('  - GridPlugin (with e-column, e-columns)')
+  console.log('  - RichTextEditor, Button, DropDownList, MultiSelect')
+  console.log('  - DatePicker, DateRangePicker, TextBox, Toast, Schedule')
+  console.log('  - Kanban (manual registration)')
+  console.log('✅ Application ready')
+}
