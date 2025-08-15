@@ -1,0 +1,76 @@
+{
+  "name": "ivanti-kanban-app",
+  "version": "1.0.0",
+  "description": "Kanban project management Vue.js app using Syncfusion components",
+  "author": "Ivanti Development Team",
+  "private": false,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "package": "npm run build && npm pack",
+    "deploy": "npm run build && tar -czf ivanti-kanban-app.tar.gz dist/",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
+    "format": "prettier --write src/",
+    "syncfusion-license": "npx syncfusion-license activate",
+    "serve": "npm run build && npx serve dist",
+    "analyze": "npm run build -- --analyze"
+  },
+  "dependencies": {
+    "@syncfusion/ej2-vue-buttons": "^30.1.37",
+    "@syncfusion/ej2-vue-calendars": "^30.1.37",
+    "@syncfusion/ej2-vue-dropdowns": "^30.1.37",
+    "@syncfusion/ej2-vue-grids": "^30.1.37",
+    "@syncfusion/ej2-vue-inputs": "^30.1.37",
+    "@syncfusion/ej2-vue-kanban": "^30.1.37",
+    "@syncfusion/ej2-vue-layouts": "^30.1.37",
+    "@syncfusion/ej2-vue-navigations": "^30.1.37",
+    "@syncfusion/ej2-vue-notifications": "^30.1.37",
+    "@syncfusion/ej2-vue-popups": "^30.1.37",
+    "@syncfusion/ej2-vue-richtexteditor": "^30.1.37",
+    "@syncfusion/ej2-vue-schedule": "^30.1.37",
+    "axios": "^1.6.0",
+    "pinia": "^2.1.7",
+    "vue": "^3.3.4",
+    "vue-router": "^4.2.5",
+    "vue-toastification": "^2.0.0-rc.5"
+  },
+  "devDependencies": {
+    "@rushstack/eslint-patch": "^1.3.3",
+    "@vitejs/plugin-vue": "^4.6.2",
+    "@vue/eslint-config-prettier": "^8.0.0",
+    "eslint": "^8.49.0",
+    "eslint-plugin-vue": "^9.17.0",
+    "prettier": "^3.0.3",
+    "vite": "^4.5.14",
+    "vite-bundle-analyzer": "^0.7.0"
+  },
+  "keywords": [
+    "kanban",
+    "project-management",
+    "vue",
+    "syncfusion",
+    "ivanti",
+    "task-management",
+    "agile"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/ivanti-kanban-app.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/ivanti-kanban-app/issues"
+  },
+  "homepage": "https://github.com/your-org/ivanti-kanban-app#readme",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ]
+}

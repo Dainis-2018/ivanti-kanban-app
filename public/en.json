@@ -1,0 +1,228 @@
+{
+  "app": {
+    "title": "Ivanti Kanban",
+    "search": "Search projects, tasks, or milestones...",
+    "filters": "Filters",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Operation completed successfully",
+    "noData": "No data available"
+  },
+  "views": {
+    "list": "List",
+    "card": "Cards", 
+    "roadmap": "Roadmap",
+    "kanban": "Kanban",
+    "timeline": "Timeline"
+  },
+  "projects": {
+    "title": "Projects",
+    "name": "Project Name",
+    "status": "Status",
+    "owner": "Owner",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "description": "Description",
+    "progress": "Progress",
+    "milestones": "Milestones",
+    "tasks": "Tasks",
+    "create": "Create Project",
+    "edit": "Edit Project",
+    "delete": "Delete Project",
+    "archive": "Archive Project",
+    "details": "Project Details",
+    "noProjects": "No projects found",
+    "status": {
+      "planning": "Planning",
+      "active": "Active",
+      "onHold": "On Hold",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    }
+  },
+  "milestones": {
+    "title": "Milestones",
+    "name": "Milestone Name",
+    "status": "Status",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "description": "Description",
+    "progress": "Progress",
+    "tasks": "Tasks",
+    "create": "Create Milestone",
+    "edit": "Edit Milestone",
+    "delete": "Delete Milestone",
+    "details": "Milestone Details",
+    "noMilestones": "No milestones found"
+  },
+  "tasks": {
+    "title": "Tasks",
+    "name": "Task Name",
+    "status": "Status",
+    "priority": "Priority",
+    "assignedTo": "Assigned To",
+    "team": "Team",
+    "dueDate": "Due Date",
+    "description": "Description",
+    "create": "Create Task",
+    "edit": "Edit Task",
+    "delete": "Delete Task",
+    "assign": "Assign Task",
+    "move": "Move Task",
+    "details": "Task Details",
+    "noTasks": "No tasks found",
+    "overdue": "Overdue",
+    "status": {
+      "open": "Open",
+      "inProgress": "In Progress", 
+      "testing": "Testing",
+      "done": "Done",
+      "cancelled": "Cancelled"
+    },
+    "priority": {
+      "critical": "Critical",
+      "high": "High", 
+      "medium": "Medium",
+      "low": "Low"
+    }
+  },
+  "filters": {
+    "status": "Status",
+    "priority": "Priority", 
+    "assignee": "Assignee",
+    "team": "Team",
+    "dateRange": "Date Range",
+    "project": "Project",
+    "milestone": "Milestone",
+    "selectStatus": "Select status...",
+    "selectPriority": "Select priority...",
+    "selectAssignee": "Select assignee...",
+    "selectTeam": "Select team...",
+    "selectProject": "Select project...",
+    "selectMilestone": "Select milestone...",
+    "selectDateRange": "Select date range...",
+    "apply": "Apply Filters",
+    "clear": "Clear Filters",
+    "active": "Active Filters"
+  },
+  "actions": {
+    "create": "Create",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "close": "Close",
+    "refresh": "Refresh",
+    "export": "Export",
+    "import": "Import",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "view": "View",
+    "download": "Download"
+  },
+  "forms": {
+    "required": "This field is required",
+    "invalid": "Invalid value",
+    "email": "Please enter a valid email",
+    "date": "Please enter a valid date",
+    "minLength": "Minimum {min} characters required",
+    "maxLength": "Maximum {max} characters allowed",
+    "selectOption": "Please select an option"
+  },
+  "messages": {
+    "deleteConfirm": "Are you sure you want to delete this item?",
+    "unsavedChanges": "You have unsaved changes. Do you want to continue?",
+    "operationSuccess": "Operation completed successfully",
+    "operationError": "Operation failed. Please try again.",
+    "networkError": "Network error. Please check your connection.",
+    "unauthorized": "You are not authorized to perform this action",
+    "notFound": "The requested item was not found",
+    "serverError": "Server error. Please try again later"
+  },
+  "kanban": {
+    "columns": {
+      "todo": "To Do",
+      "inProgress": "In Progress",
+      "testing": "Testing", 
+      "done": "Done"
+    },
+    "card": {
+      "assignedTo": "Assigned to",
+      "dueDate": "Due",
+      "priority": "Priority",
+      "tags": "Tags"
+    },
+    "actions": {
+      "addCard": "Add Card",
+      "editCard": "Edit Card",
+      "deleteCard": "Delete Card",
+      "moveCard": "Move Card"
+    }
+  },
+  "roadmap": {
+    "timeline": "Timeline",
+    "gantt": "Gantt Chart",
+    "milestones": "Milestones",
+    "dependencies": "Dependencies",
+    "critical": "Critical Path",
+    "progress": "Progress Overview"
+  },
+  "teams": {
+    "title": "Teams",
+    "name": "Team Name",
+    "members": "Members",
+    "lead": "Team Lead",
+    "description": "Description",
+    "create": "Create Team",
+    "edit": "Edit Team",
+    "delete": "Delete Team",
+    "assign": "Assign to Team"
+  },
+  "users": {
+    "title": "Users",
+    "name": "Full Name",
+    "username": "Username",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "lastLogin": "Last Login",
+    "create": "Create User",
+    "edit": "Edit User",
+    "delete": "Delete User"
+  },
+  "navigation": {
+    "home": "Home",
+    "projects": "Projects",
+    "tasks": "Tasks",
+    "teams": "Teams",
+    "users": "Users",
+    "settings": "Settings",
+    "help": "Help",
+    "logout": "Logout"
+  },
+  "pagination": {
+    "first": "First",
+    "previous": "Previous", 
+    "next": "Next",
+    "last": "Last",
+    "page": "Page",
+    "of": "of",
+    "items": "items",
+    "showing": "Showing",
+    "to": "to",
+    "totalItems": "total items"
+  },
+  "date": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "tomorrow": "Tomorrow",
+    "thisWeek": "This Week",
+    "lastWeek": "Last Week",
+    "nextWeek": "Next Week",
+    "thisMonth": "This Month",
+    "lastMonth": "Last Month",
+    "nextMonth": "Next Month"
+  }
+}
