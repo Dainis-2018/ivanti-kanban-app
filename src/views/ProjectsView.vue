@@ -177,7 +177,11 @@ export default {
       projectStore.isLoading || milestoneStore.isLoading
     )
 
-    const { filteredItems: filteredProjects } = useFilters(
+    const { 
+      filteredItems: filteredProjects,
+      setSearchQuery,
+      filters
+    } = useFilters(
       computed(() => projectStore.projects),
       {}
     )
@@ -357,8 +361,8 @@ export default {
 
     // Apply search and filters
     watch([() => props.searchQuery, () => props.activeFilters], () => {
-      filteredProjects.setSearchQuery(props.searchQuery || '')
-      filteredProjects.filters.value = { ...props.activeFilters }
+      setSearchQuery(props.searchQuery || '')
+      filters.value = { ...props.activeFilters }
     }, { immediate: true })
 
     onMounted(() => {

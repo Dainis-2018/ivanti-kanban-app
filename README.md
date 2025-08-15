@@ -134,8 +134,8 @@ This creates `ivanti-kanban-app.tar.gz` ready for deployment.
 
 ### Environment Variables
 
-- `VITE_API_BASE_URL`: Base URL for your API
-- `VITE_API_KEY`: API authentication key
+- `VITE_API_BASE_URL`: Base URL for your API (for development proxy only)
+- `VITE_API_KEY`: API authentication key (for development only)
 - `VITE_SYNCFUSION_LICENSE_KEY`: Syncfusion license key
 - `VITE_ODATA_ENDPOINT`: OData endpoint path
 

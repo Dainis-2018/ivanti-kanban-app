@@ -2,9 +2,42 @@
 import axios from 'axios'
 import { useToast } from '@/composables/useToast'
 
+// SID cache for production
+let cachedSid = null
+
+// Function to get the correct authorization header
+const getAuthorizationHeader = async () => {
+  // For development, use the API key from environment variables
+  if (import.meta.env.DEV) {
+    return `rest_api_key=${import.meta.env.VITE_API_KEY}`
+  }
+
+  // For production, fetch the SID from a dedicated endpoint and cache it.
+  if (cachedSid) {
+    return cachedSid
+  }
+
+  // Since the session cookie is HttpOnly, it cannot be read by client-side JavaScript.
+  // We fetch the SID from our dedicated endpoint and cache it in memory.
+  try {
+    // Use a new, clean axios instance to avoid interceptor recursion
+    const { data } = await axios.create().get(`${window.location.origin}/HEAT/ivanti-kanban/sid.aspx`)
+    cachedSid = data
+    return cachedSid
+  } catch (error) {
+    const { showToast } = useToast()
+    console.error('Failed to fetch SID:', error)
+    showToast('Authentication session could not be established.', 'error')
+    return Promise.reject(new Error('Failed to fetch SID'))
+  }
+}
 // Create axios instance
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  // In development, we use a relative path ('') because the full path, including '/api',
+  // is provided in each request. The '/api' prefix is caught by the Vite proxy.
+  // In production, the base URL is constructed dynamically to point to the /HEAT/ path
+  // relative to the application's origin. The request interceptor handles stripping the /api prefix.
+  baseURL: import.meta.env.DEV ? '' : `${window.location.origin}/HEAT/`,
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -12,14 +45,18 @@ const apiClient = axios.create({
   }
 })
 
-// Add API key if available
-if (import.meta.env.VITE_API_KEY) {
-  apiClient.defaults.headers.common['X-API-Key'] = import.meta.env.VITE_API_KEY
-}
-
 // Request interceptor
 apiClient.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    // Set the dynamic authorization header for each request
+    config.headers.Authorization = await getAuthorizationHeader()
+
+    // In production, remove the /api prefix from the start of the URL.
+    // This prefix is only used to trigger the Vite dev proxy.
+    if (!import.meta.env.DEV && config.url.startsWith('/api/')) {
+      config.url = config.url.substring(4)
+    }
+
     // Add timestamp to prevent caching
     config.params = {
       ...config.params,

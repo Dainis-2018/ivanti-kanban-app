@@ -9,7 +9,7 @@ export const ENDPOINTS = {
   MILESTONES: 'frs_prj_phases',
   TASKS: 'task__assignments',
   TEAMS: 'standarduserteams',
-  USERS: 'standarduser'
+  USERS: 'employees'
 }
 
 // OData query builder
@@ -111,8 +111,8 @@ export class ODataService {
   // Specific entity operations
   static async getProjects(filters = {}) {
     const query = this.createQuery()
-      .select('ProjectId,ProjectName,Status,Owner,StartDate,EndDate,Description')
-      .expand('phases($select=PhaseId,PhaseName,Status,StartDate,EndDate)')
+      .select('ProjectNumber,ProjectName,Status,Owner,ProjectStartDate,ProjectEndDate,Summary')
+      .expand('phases($select=PhaseNumber,PhaseTitle,Status,PlannedStartDate,PlannedEndDate)')
       .orderBy('ProjectName')
 
     if (filters.status) {
