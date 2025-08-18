@@ -1,4 +1,4 @@
-<!-- views/ProjectsView.vue - Clean Projects Management View with Material Design -->
+<!-- views/ProjectsView.vue - Fixed to work with existing implementation -->
 <template>
   <div class="projects-view">
     <!-- Breadcrumbs Navigation (only show when deeper than projects list) -->
@@ -35,14 +35,19 @@
           <h2 class="mdc-typography--headline6">Projects ({{ filteredProjects.length }})</h2>
           <div class="toolbar-actions">
             <button 
-              class="mdc-button mdc-button--outlined" 
+              class="mdc-button mdc-button--outlined refresh-btn" 
               @click="refreshGrid" 
               :disabled="isLoading"
+              :title="t('actions.refresh')"
             >
-              🔄 Refresh
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
+              </svg>
             </button>
-            <button class="mdc-button mdc-button--raised" @click="createProject">
-              ➕ Create Project
+            <button class="mdc-button mdc-button--raised create-btn" @click="createProject" :title="t('actions.createProject')">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+              </svg>
             </button>
           </div>
         </div>
@@ -69,16 +74,21 @@
           class="project-grid"
         >
           <e-columns>
+            <e-column 
+              type="checkbox" 
+              width="50"
+            />
+            <e-column
+              field="ProjectNumber"
+              headerText="ID"
+              width="100"
+              textAlign="Center"
+            />
             <e-column
               field="ProjectName"
               :headerText="t('projects.name')"
               width="300"
               :template="'projectNameTemplate'"
-            />
-            <e-column
-              field="Description"
-              :headerText="t('projects.description')"
-              width="400"
             />
             <e-column
               field="Status"
@@ -87,35 +97,35 @@
               :template="'statusTemplate'"
             />
             <e-column
-              field="Owner"
-              :headerText="t('projects.owner')"
-              width="150"
+              field="Priority"
+              headerText="Priority"
+              width="100"
+              :template="'priorityTemplate'"
             />
             <e-column
-              field="Progress"
+              field="CompletionPercent"
               :headerText="t('projects.progress')"
               width="120"
               :template="'progressTemplate'"
             />
             <e-column
-              field="StartDate"
+              field="Owner"
+              :headerText="t('projects.owner')"
+              width="150"
+            />
+            <e-column
+              field="ProjectStartDate"
               :headerText="t('projects.startDate')"
               width="120"
               type="date"
               format="yMd"
             />
             <e-column
-              field="EndDate"
+              field="ProjectEndDate"
               :headerText="t('projects.endDate')"
               width="120"
               type="date"
               format="yMd"
-            />
-            <e-column
-              :headerText="t('common.actions')"
-              width="100"
-              :template="'actionTemplate'"
-              :allowSorting="false"
             />
           </e-columns>
 
@@ -128,9 +138,6 @@
               >
                 {{ data.ProjectName }}
               </div>
-              <div class="project-id mdc-typography--caption">
-                ID: {{ data.ProjectID }}
-              </div>
             </div>
           </template>
 
@@ -140,26 +147,22 @@
             </span>
           </template>
 
+          <template #priorityTemplate="{ data }">
+            <span class="priority-chip" :class="`priority-chip--${getPriorityClass(data.Priority)}`">
+              {{ data.Priority || 'Normal' }}
+            </span>
+          </template>
+
           <template #progressTemplate="{ data }">
             <div class="progress-container">
               <div class="progress-linear">
                 <div 
                   class="progress-linear__bar" 
-                  :style="{ transform: `scaleX(${(data.Progress || 0) / 100})` }"
+                  :style="{ transform: `scaleX(${(data.CompletionPercent || 0) / 100})` }"
                 ></div>
               </div>
-              <span class="mdc-typography--caption">{{ data.Progress || 0 }}%</span>
+              <span class="mdc-typography--caption progress-text">{{ data.CompletionPercent || 0 }}%</span>
             </div>
-          </template>
-
-          <template #actionTemplate="{ data }">
-            <button
-              class="mdc-button mdc-button--outlined action-btn"
-              @click="selectProject(data)"
-              :title="t('actions.view')"
-            >
-              👁️
-            </button>
           </template>
         </ejs-grid>
       </div>
@@ -170,14 +173,19 @@
           <h2 class="mdc-typography--headline6">Projects ({{ filteredProjects.length }})</h2>
           <div class="toolbar-actions">
             <button 
-              class="mdc-button mdc-button--outlined" 
+              class="mdc-button mdc-button--outlined refresh-btn" 
               @click="refreshData" 
               :disabled="isLoading"
+              :title="t('actions.refresh')"
             >
-              🔄 Refresh
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
+              </svg>
             </button>
-            <button class="mdc-button mdc-button--raised" @click="createProject">
-              ➕ Create Project
+            <button class="mdc-button mdc-button--raised create-btn" @click="createProject" :title="t('actions.createProject')">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+              </svg>
             </button>
           </div>
         </div>
@@ -185,7 +193,7 @@
         <div class="projects-cards">
           <div
             v-for="project in filteredProjects"
-            :key="project.ProjectID"
+            :key="project.RecId"
             class="mdc-card project-card"
             @click="selectProject(project)"
           >
@@ -196,21 +204,21 @@
               </span>
             </div>
             <div class="card-body">
-              <p class="mdc-typography--body2 project-description">{{ project.Description }}</p>
+              <p class="mdc-typography--body2 project-description">{{ project.Summary }}</p>
               <div class="project-meta">
                 <div class="meta-item">
                   <span class="mdc-typography--caption text-secondary">Owner:</span>
                   <span class="mdc-typography--body2">{{ project.Owner }}</span>
                 </div>
                 <div class="meta-item">
-                  <span class="mdc-typography--caption text-secondary">Progress:</span>
-                  <span class="mdc-typography--body2">{{ project.Progress || 0 }}%</span>
+                  <span class="mdc-typography--caption text-secondary">Project #:</span>
+                  <span class="mdc-typography--body2">{{ project.ProjectNumber }}</span>
                 </div>
               </div>
             </div>
             <div class="card-footer">
               <span class="mdc-typography--caption date-range">
-                {{ formatDate(project.StartDate) }} - {{ formatDate(project.EndDate) }}
+                {{ formatDate(project.ProjectStartDate) }} - {{ formatDate(project.ProjectEndDate) }}
               </span>
             </div>
           </div>
@@ -223,14 +231,19 @@
           <h2 class="mdc-typography--headline6">Project Roadmap</h2>
           <div class="toolbar-actions">
             <button 
-              class="mdc-button mdc-button--outlined" 
+              class="mdc-button mdc-button--outlined refresh-btn" 
               @click="refreshData" 
               :disabled="isLoading"
+              :title="t('actions.refresh')"
             >
-              🔄 Refresh
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
+              </svg>
             </button>
-            <button class="mdc-button mdc-button--raised" @click="createProject">
-              ➕ Create Project
+            <button class="mdc-button mdc-button--raised create-btn" @click="createProject" :title="t('actions.createProject')">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+              </svg>
             </button>
           </div>
         </div>
@@ -238,7 +251,7 @@
         <div class="roadmap-timeline">
           <div
             v-for="project in filteredProjects"
-            :key="project.ProjectID"
+            :key="project.RecId"
             class="timeline-item"
             @click="selectProject(project)"
           >
@@ -250,11 +263,11 @@
                   {{ project.Status }}
                 </span>
               </div>
-              <p class="mdc-typography--body2">{{ project.Description }}</p>
+              <p class="mdc-typography--body2">{{ project.Summary }}</p>
               <div class="timeline-meta">
                 <span class="mdc-typography--caption">{{ project.Owner }}</span>
                 <span class="mdc-typography--caption">
-                  {{ formatDate(project.StartDate) }} - {{ formatDate(project.EndDate) }}
+                  {{ formatDate(project.ProjectStartDate) }} - {{ formatDate(project.ProjectEndDate) }}
                 </span>
               </div>
 
@@ -262,7 +275,7 @@
               <div v-if="project.milestones && project.milestones.length" class="milestones-list">
                 <div
                   v-for="milestone in project.milestones"
-                  :key="milestone.PhaseID"
+                  :key="milestone.RecId"
                   class="mdc-card milestone-item"
                   @click.stop="selectMilestone(milestone)"
                 >
@@ -291,38 +304,76 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useToast } from 'vue-toastification'
 import { useAppStore } from '@/stores/appStore'
 import { useProjectStore } from '@/stores/projectStore'
 import { useMilestoneStore } from '@/stores/milestoneStore'
 import { useLocalization } from '@/composables/useLocalization'
+import { useToast } from '@/composables/useToast'
 
 export default {
   name: 'ProjectsView',
-  setup() {
-    // Core setup
+  props: {
+    searchQuery: String,
+    activeFilters: Object,
+    currentView: String
+  },
+  setup(props) {
     const router = useRouter()
-    const toast = useToast()
-    const { t } = useLocalization()
-    
-    // Stores
     const appStore = useAppStore()
     const projectStore = useProjectStore()
     const milestoneStore = useMilestoneStore()
-    
-    // Reactive data
+    const { t } = useLocalization()
+    const { showToast, showError } = useToast()
+
+    // State
     const projectGrid = ref(null)
-    const isLoading = ref(false)
-    const error = ref(null)
     const selectedProject = ref(null)
     const selectedMilestone = ref(null)
     const milestones = ref([])
+
+    // Computed properties - Fix the main issue by creating filteredProjects locally
+    const isLoading = computed(() => projectStore.isLoading || milestoneStore.isLoading)
+    const error = computed(() => projectStore.error || milestoneStore.error)
+    const currentView = computed(() => appStore.currentView || 'list')
     
-    // Computed properties
-    const currentView = computed(() => appStore.currentView)
-    const filteredProjects = computed(() => projectStore.filteredProjects)
+    // Create filteredProjects computed property that works with your existing store structure
+    const filteredProjects = computed(() => {
+      // Use the projects array from your existing store
+      let projects = projectStore.projects || []
+      
+      // Apply search filter from props or appStore
+      const searchQuery = props.searchQuery || appStore.searchQuery
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase()
+        projects = projects.filter(project =>
+          project.ProjectName?.toLowerCase().includes(query) ||
+          project.Summary?.toLowerCase().includes(query) ||
+          project.Owner?.toLowerCase().includes(query) ||
+          project.ProjectNumber?.toString().includes(query) ||
+          project.RecId?.toString().includes(query)
+        )
+      }
+      
+      // Apply filters from props or appStore
+      const filters = props.activeFilters || appStore.activeFilters || {}
+      
+      if (filters.status && filters.status.length > 0) {
+        projects = projects.filter(project => filters.status.includes(project.Status))
+      }
+      
+      if (filters.owner && filters.owner.length > 0) {
+        projects = projects.filter(project => filters.owner.includes(project.Owner))
+      }
+      
+      if (filters.priority && filters.priority.length > 0) {
+        projects = projects.filter(project => filters.priority.includes(project.Priority))
+      }
+      
+      return projects
+    })
+
     const showList = computed(() => currentView.value === 'list')
     const showCard = computed(() => currentView.value === 'card')
     const showRoadmap = computed(() => currentView.value === 'roadmap')
@@ -332,7 +383,7 @@ export default {
       
       if (selectedProject.value) {
         crumbs.push({
-          id: selectedProject.value.ProjectID,
+          id: selectedProject.value.RecId,
           name: selectedProject.value.ProjectName,
           type: 'project'
         })
@@ -340,7 +391,7 @@ export default {
       
       if (selectedMilestone.value) {
         crumbs.push({
-          id: selectedMilestone.value.PhaseID,
+          id: selectedMilestone.value.RecId,
           name: selectedMilestone.value.PhaseName,
           type: 'milestone'
         })
@@ -369,7 +420,7 @@ export default {
     }
 
     const searchSettings = {
-      fields: ['ProjectName', 'Description', 'Owner'],
+      fields: ['ProjectName', 'Summary', 'Owner'],
       operator: 'contains',
       key: '',
       ignoreCase: true
@@ -400,30 +451,47 @@ export default {
       }
     }
 
+    const getPriorityClass = (priority) => {
+      switch (priority?.toLowerCase()) {
+        case 'critical':
+        case 'urgent':
+          return 'critical'
+        case 'high':
+          return 'high'
+        case 'medium':
+        case 'normal':
+          return 'medium'
+        case 'low':
+          return 'low'
+        default:
+          return 'medium'
+      }
+    }
+
     const selectProject = async (project) => {
       try {
         selectedProject.value = project
         selectedMilestone.value = null
+        appStore.setSelectedProject(project)
         
-        // Load milestones for the selected project
-        await milestoneStore.fetchMilestonesByProject(project.ProjectID)
+        // Load milestones using your existing store method
+        await milestoneStore.fetchMilestonesByProject(project.RecId)
         milestones.value = milestoneStore.milestones
         
-        // Navigate to project detail route
-        router.push(`/projects/${project.ProjectID}`)
+        // Navigate to project detail route using RecId
+        router.push(`/projects/${project.RecId}`)
       } catch (err) {
-        error.value = 'Failed to load project details'
-        toast.error('Failed to load project details')
+        showError('Failed to load project details')
       }
     }
 
     const selectMilestone = async (milestone) => {
       try {
         selectedMilestone.value = milestone
-        router.push(`/projects/${selectedProject.value.ProjectID}/milestones/${milestone.PhaseID}`)
+        appStore.setSelectedMilestone(milestone)
+        router.push(`/projects/${selectedProject.value.RecId}/milestones/${milestone.RecId}`)
       } catch (err) {
-        error.value = 'Failed to load milestone details'
-        toast.error('Failed to load milestone details')
+        showError('Failed to load milestone details')
       }
     }
 
@@ -431,25 +499,24 @@ export default {
       if (crumb.id === 'projects') {
         selectedProject.value = null
         selectedMilestone.value = null
+        appStore.setSelectedProject(null)
+        appStore.setSelectedMilestone(null)
         router.push('/projects')
       } else if (crumb.type === 'project') {
         selectedMilestone.value = null
+        appStore.setSelectedMilestone(null)
         router.push(`/projects/${crumb.id}`)
       } else if (crumb.type === 'milestone') {
-        router.push(`/projects/${selectedProject.value.ProjectID}/milestones/${crumb.id}`)
+        router.push(`/projects/${selectedProject.value.RecId}/milestones/${crumb.id}`)
       }
     }
 
     const loadData = async () => {
       try {
-        isLoading.value = true
-        error.value = null
+        // Use your existing store method
         await projectStore.fetchProjects()
       } catch (err) {
-        error.value = err.message || 'Failed to load projects'
-        toast.error('Failed to load projects')
-      } finally {
-        isLoading.value = false
+        showError('Failed to load projects')
       }
     }
 
@@ -458,20 +525,20 @@ export default {
     }
 
     const refreshGrid = async () => {
-      await loadData()
+      // Use your existing store method
+      await projectStore.refreshProjects()
       if (projectGrid.value) {
         projectGrid.value.refresh()
       }
     }
 
     const createProject = () => {
-      // Navigate to project creation or open dialog
       router.push('/projects/new')
     }
 
     const createMilestone = () => {
       if (selectedProject.value) {
-        router.push(`/projects/${selectedProject.value.ProjectID}/milestones/new`)
+        router.push(`/projects/${selectedProject.value.RecId}/milestones/new`)
       }
     }
 
@@ -493,11 +560,9 @@ export default {
 
     // Lifecycle hooks
     onMounted(async () => {
-      await loadData()
-    })
-
-    onUnmounted(() => {
-      // Cleanup if needed
+      if (!projectStore.projects || projectStore.projects.length === 0) {
+        await loadData()
+      }
     })
 
     // Watch for view changes
@@ -508,19 +573,16 @@ export default {
     // Return reactive references and methods
     return {
       // Refs
-      milestones,
-      error,
       projectGrid,
-      
-      // Stores
-      appStore,
-      projectStore,
-      milestoneStore,
+      selectedProject,
+      selectedMilestone,
+      milestones,
       
       // Computed
       isLoading,
+      error,
       currentView,
-      filteredProjects,
+      filteredProjects, // This is the key fix - create it locally instead of relying on store
       showList,
       showCard,
       showRoadmap,
@@ -536,6 +598,7 @@ export default {
       // Methods
       formatDate,
       getStatusClass,
+      getPriorityClass,
       selectProject,
       selectMilestone,
       navigateTo,
@@ -558,42 +621,38 @@ export default {
 </script>
 
 <style scoped>
-/* Component-specific styles that don't conflict with global Material Design theme */
-
+/* Use the Material Design styles from your global theme */
 .projects-view {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--mdc-theme-background);
+  background: var(--mdc-theme-background, #fafafa);
 }
 
-/* Breadcrumbs */
 .breadcrumbs {
-  padding: var(--mdc-spacing-md);
-  background: var(--mdc-theme-surface);
+  padding: 16px;
+  background: var(--mdc-theme-surface, #ffffff);
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
   box-shadow: var(--mdc-elevation-01);
 }
 
 .breadcrumb {
   cursor: pointer;
-  color: var(--mdc-theme-primary);
+  color: var(--mdc-theme-primary, #1976d2);
   transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .breadcrumb:hover {
-  color: var(--mdc-theme-primary-variant);
+  color: var(--mdc-theme-primary-variant, #1565c0);
   text-decoration: underline;
 }
 
-/* Content */
 .view-content {
   flex: 1;
-  padding: var(--mdc-spacing-md);
+  padding: 16px;
   overflow: auto;
 }
 
-/* Loading and Error States */
 .loading-state,
 .error-state,
 .empty-state {
@@ -601,44 +660,56 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--mdc-spacing-xl);
+  padding: 32px;
   text-align: center;
 }
 
 .loading-state .mdc-circular-progress {
-  margin-bottom: var(--mdc-spacing-md);
+  margin-bottom: 16px;
 }
 
-/* Toolbar */
-.view-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--mdc-spacing-md);
-  margin-bottom: var(--mdc-spacing-md);
+.view-toolbar.mdc-card {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 16px !important;
+  margin-bottom: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: auto !important;
 }
 
-.view-toolbar h2 {
-  margin: 0;
+.view-toolbar.mdc-card h2 {
+  margin: 0 !important;
+  padding: 0 !important;
+  flex: 0 0 auto !important;
+  text-align: left !important;
+  align-self: center !important;
+  white-space: nowrap;
+  order: 1;
 }
 
-.toolbar-actions {
-  display: flex;
-  gap: var(--mdc-spacing-sm);
+.view-toolbar.mdc-card .toolbar-actions {
+  display: flex !important;
+  gap: 8px;
+  margin-left: auto !important;
+  flex-shrink: 0 !important;
+  align-items: center !important;
+  order: 2;
 }
 
-/* Grid customizations */
 .project-grid {
-  margin-bottom: var(--mdc-spacing-md);
+  margin-bottom: 16px;
 }
 
 .project-name-cell {
-  padding: var(--mdc-spacing-xs) 0;
+  padding: 4px 0;
 }
 
 .project-title {
   cursor: pointer;
-  margin-bottom: var(--mdc-spacing-xs);
+  margin-bottom: 4px;
   transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -650,10 +721,49 @@ export default {
   opacity: 0.7;
 }
 
+/* Priority chips */
+.priority-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  height: 24px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.priority-chip--critical {
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid #e57373;
+}
+
+.priority-chip--high {
+  background-color: #fff3e0;
+  color: #ef6c00;
+  border: 1px solid #ffb74d;
+}
+
+.priority-chip--medium {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+  border: 1px solid #81c784;
+}
+
+.priority-chip--low {
+  background-color: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #64b5f6;
+}
+
+/* Progress container improvements */
 .progress-container {
   display: flex;
   align-items: center;
-  gap: var(--mdc-spacing-sm);
+  gap: 8px;
+  width: 100%;
 }
 
 .progress-linear {
@@ -661,24 +771,91 @@ export default {
   min-width: 60px;
 }
 
+.progress-text {
+  min-width: 35px;
+  text-align: right;
+  font-weight: 500;
+}
+
+.create-btn {
+  min-width: 40px !important;
+  width: 40px;
+  height: 40px;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--mdc-theme-primary, #1976d2) !important;
+  color: white !important;
+  box-shadow: var(--mdc-elevation-02) !important;
+}
+
+.create-btn:hover {
+  box-shadow: var(--mdc-elevation-04) !important;
+  transform: translateY(-1px);
+}
+
+.create-btn svg {
+  transition: transform 0.2s ease;
+}
+
+.create-btn:hover svg {
+  transform: scale(1.1);
+}
+
+.refresh-btn {
+  min-width: 40px !important;
+  width: 40px;
+  height: 40px;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.refresh-btn svg {
+  transition: transform 0.3s ease;
+}
+
+.refresh-btn:hover svg {
+  transform: rotate(90deg);
+}
+
+.refresh-btn:disabled svg {
+  opacity: 0.5;
+}
+
 .action-btn {
   min-width: 36px !important;
   width: 36px;
   height: 36px;
   padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Card View */
+.action-btn svg {
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.action-btn:hover svg {
+  opacity: 1;
+}
+
 .projects-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: var(--mdc-spacing-md);
+  gap: 16px;
 }
 
 .project-card {
   cursor: pointer;
   transition: all 280ms cubic-bezier(0.4, 0, 0.2, 1);
-  padding: var(--mdc-spacing-md);
+  padding: 16px;
 }
 
 .project-card:hover {
@@ -690,8 +867,8 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: var(--mdc-spacing-md);
-  gap: var(--mdc-spacing-sm);
+  margin-bottom: 16px;
+  gap: 8px;
 }
 
 .card-header h3 {
@@ -700,18 +877,18 @@ export default {
 }
 
 .card-body {
-  margin-bottom: var(--mdc-spacing-md);
+  margin-bottom: 16px;
 }
 
 .project-description {
-  margin-bottom: var(--mdc-spacing-md);
+  margin-bottom: 16px;
   line-height: 1.4;
 }
 
 .project-meta {
   display: flex;
   flex-direction: column;
-  gap: var(--mdc-spacing-xs);
+  gap: 4px;
 }
 
 .meta-item {
@@ -722,41 +899,40 @@ export default {
 
 .card-footer {
   border-top: 1px solid rgba(0, 0, 0, 0.12);
-  padding-top: var(--mdc-spacing-md);
+  padding-top: 16px;
   text-align: center;
 }
 
-/* Roadmap View */
 .roadmap-timeline {
   position: relative;
-  margin-top: var(--mdc-spacing-md);
+  margin-top: 16px;
 }
 
 .timeline-item {
   position: relative;
-  margin-bottom: var(--mdc-spacing-lg);
-  padding-left: calc(var(--mdc-spacing-xl) + var(--mdc-spacing-sm));
+  margin-bottom: 24px;
+  padding-left: 40px;
   cursor: pointer;
 }
 
 .timeline-marker {
   position: absolute;
   left: 0;
-  top: var(--mdc-spacing-sm);
+  top: 8px;
   width: 16px;
   height: 16px;
-  background: var(--mdc-theme-primary);
+  background: var(--mdc-theme-primary, #1976d2);
   border-radius: 50%;
   box-shadow: var(--mdc-elevation-02);
 }
 
 .timeline-content {
-  padding: var(--mdc-spacing-md);
+  padding: 16px;
   transition: all 280ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .timeline-item:hover .timeline-content {
-  transform: translateX(var(--mdc-spacing-sm));
+  transform: translateX(8px);
   box-shadow: var(--mdc-elevation-04);
 }
 
@@ -764,24 +940,23 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: var(--mdc-spacing-sm);
+  margin-top: 8px;
   flex-wrap: wrap;
-  gap: var(--mdc-spacing-sm);
+  gap: 8px;
 }
 
-/* Milestones */
 .milestones-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: var(--mdc-spacing-sm);
-  margin-top: var(--mdc-spacing-md);
+  gap: 8px;
+  margin-top: 16px;
 }
 
 .milestone-item {
-  padding: var(--mdc-spacing-sm);
+  padding: 8px;
   cursor: pointer;
   transition: all 280ms cubic-bezier(0.4, 0, 0.2, 1);
-  border-left: 4px solid var(--mdc-theme-primary);
+  border-left: 4px solid var(--mdc-theme-primary, #1976d2);
 }
 
 .milestone-item:hover {
@@ -790,7 +965,7 @@ export default {
 }
 
 .milestone-item h5 {
-  margin: 0 0 var(--mdc-spacing-xs) 0;
+  margin: 0 0 4px 0;
 }
 
 .milestone-meta {
@@ -798,18 +973,18 @@ export default {
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--mdc-spacing-xs);
+  gap: 4px;
 }
 
 /* Responsive Design */
 @media (max-width: 599px) {
   .view-content {
-    padding: var(--mdc-spacing-sm);
+    padding: 8px;
   }
   
   .view-toolbar {
     flex-direction: column;
-    gap: var(--mdc-spacing-sm);
+    gap: 8px;
     align-items: stretch;
   }
   
@@ -825,11 +1000,11 @@ export default {
   .card-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--mdc-spacing-sm);
+    gap: 8px;
   }
 
   .timeline-item {
-    padding-left: var(--mdc-spacing-lg);
+    padding-left: 24px;
   }
 
   .timeline-marker {
@@ -841,30 +1016,6 @@ export default {
   .milestone-meta {
     flex-direction: column;
     align-items: flex-start;
-  }
-}
-
-@media (min-width: 600px) and (max-width: 1023px) {
-  .projects-cards {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  }
-  
-  .milestones-list {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  }
-}
-
-@media (min-width: 1024px) {
-  .view-content {
-    padding: var(--mdc-spacing-lg);
-  }
-  
-  .projects-cards {
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  }
-  
-  .milestones-list {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   }
 }
 </style>

@@ -158,7 +158,7 @@ export class ODataService {
   // Get projects with their related data using separate calls
   static async getProjects(filters = {}) {
     const query = this.createQuery()
-      .select('RecId,ProjectNumber,ProjectName,Status,Owner,ProjectStartDate,ProjectEndDate,Summary')
+      .select('RecId,ProjectNumber,ProjectName,Status,Priority,Owner,CompletionPercent,ProjectStartDate,ProjectEndDate,Summary')
       .orderBy('ProjectName')
 
     // Apply filters

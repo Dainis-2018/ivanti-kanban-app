@@ -82,43 +82,7 @@
   background-color: rgba(25, 118, 210, 0.08) !important;
 }
 
-/* Pager Material Design */
-.e-pager {
-  background: var(--surface-color);
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
-  padding: 8px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 56px;
-}
-
-.e-pager .e-pagercontainer {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.e-pager .e-link {
-  min-width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  color: rgba(0, 0, 0, 0.54);
-  text-decoration: none;
-  transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.e-pager .e-link:hover {
-  background-color: rgba(0, 0, 0, 0.04);
-}
-
-.e-pager .e-currentitem {
-  background-color: var(--primary-color) !important;
-  color: var(--on-primary) !important;
-}
+/* REMOVED: Custom Pager Material Design styles - Using Syncfusion's original pagination */
 
 /* Button Component Enhancement */
 .e-btn {
