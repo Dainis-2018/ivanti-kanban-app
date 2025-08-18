@@ -33,25 +33,8 @@ export default defineConfig(({ command, mode }) => {
           // Rewrite the path - replace /api with /HEAT/api
           rewrite: (path) => {
             const newPath = path.replace(/^\/api/, '/HEAT/api')
-            console.log(`Proxy rewrite: ${path} -> ${newPath}`)
             return newPath
           },
-          
-          // Configure proxy events for debugging
-          configure: (proxy, options) => {
-            proxy.on('error', (err, req, res) => {
-              console.error('Proxy error:', err)
-            })
-            
-            proxy.on('proxyReq', (proxyReq, req, res) => {
-              console.log(`Proxying request: ${req.method} ${req.url} -> ${options.target}${proxyReq.path}`)
-            })
-            
-            proxy.on('proxyRes', (proxyRes, req, res) => {
-              console.log(`Proxy response: ${proxyRes.statusCode} for ${req.url}`)
-            })
-          },
-          
           // Additional headers for Ivanti
           headers: {
             'Accept': 'application/json',

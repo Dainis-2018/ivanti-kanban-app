@@ -1,4 +1,4 @@
-<!-- views/ProjectsView.vue - Clean Projects Management View -->
+<!-- views/ProjectsView.vue - Clean Projects Management View with Material Design -->
 <template>
   <div class="projects-view">
     <!-- Breadcrumbs Navigation (only show when deeper than projects list) -->
@@ -17,27 +17,31 @@
     <!-- Main Content -->
     <div class="view-content">
       <!-- Loading State -->
-      <div v-if="isLoading" class="loading">
-        <div class="spinner"></div>
-        <p>Loading projects...</p>
+      <div v-if="isLoading" class="loading-state">
+        <div class="mdc-circular-progress"></div>
+        <p class="mdc-typography--body1">Loading projects...</p>
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="error">
-        <h3>Error</h3>
-        <p>{{ error }}</p>
-        <button @click="refreshData">Retry</button>
+      <div v-else-if="error" class="error-state">
+        <h3 class="mdc-typography--headline6 text-error">Error</h3>
+        <p class="mdc-typography--body1">{{ error }}</p>
+        <button class="mdc-button mdc-button--raised" @click="refreshData">Retry</button>
       </div>
 
       <!-- PROJECT LIST VIEW with Syncfusion Grid -->
       <div v-else-if="showList" class="list-view">
-        <div class="list-toolbar">
-          <h2>Projects ({{ filteredProjects.length }})</h2>
+        <div class="view-toolbar mdc-card">
+          <h2 class="mdc-typography--headline6">Projects ({{ filteredProjects.length }})</h2>
           <div class="toolbar-actions">
-            <button @click="refreshGrid" class="refresh-btn" :disabled="isLoading">
+            <button 
+              class="mdc-button mdc-button--outlined" 
+              @click="refreshGrid" 
+              :disabled="isLoading"
+            >
               🔄 Refresh
             </button>
-            <button @click="createProject" class="create-btn">
+            <button class="mdc-button mdc-button--raised" @click="createProject">
               ➕ Create Project
             </button>
           </div>
@@ -62,6 +66,7 @@
           @rowDeselected="onRowDeselected"
           @actionComplete="onActionComplete"
           height="auto"
+          class="project-grid"
         >
           <e-columns>
             <e-column
@@ -73,7 +78,7 @@
             <e-column
               field="Description"
               :headerText="t('projects.description')"
-              width="200"
+              width="400"
             />
             <e-column
               field="Status"
@@ -87,90 +92,91 @@
               width="150"
             />
             <e-column
+              field="Progress"
+              :headerText="t('projects.progress')"
+              width="120"
+              :template="'progressTemplate'"
+            />
+            <e-column
               field="StartDate"
               :headerText="t('projects.startDate')"
               width="120"
               type="date"
-              format="MMM dd, yyyy"
+              format="yMd"
             />
             <e-column
               field="EndDate"
               :headerText="t('projects.endDate')"
               width="120"
               type="date"
-              format="MMM dd, yyyy"
+              format="yMd"
             />
             <e-column
-              field="Progress"
-              :headerText="t('projects.progress')"
+              :headerText="t('common.actions')"
               width="100"
-              :template="'progressTemplate'"
-            />
-            <e-column
-              :headerText="t('actions.view')"
-              width="120"
-              :template="'actionsTemplate'"
+              :template="'actionTemplate'"
               :allowSorting="false"
-              :allowFiltering="false"
             />
           </e-columns>
 
-          <!-- Project Name Template -->
+          <!-- Grid Templates -->
           <template #projectNameTemplate="{ data }">
             <div class="project-name-cell">
-              <div class="project-title" @click="selectProject(data)">
+              <div 
+                class="project-title mdc-typography--subtitle2 text-primary" 
+                @click="selectProject(data)"
+              >
                 {{ data.ProjectName }}
               </div>
-              <div class="project-id">
+              <div class="project-id mdc-typography--caption">
                 ID: {{ data.ProjectID }}
               </div>
             </div>
           </template>
 
-          <!-- Status Template -->
           <template #statusTemplate="{ data }">
-            <span class="status-badge" :class="getStatusClass(data.Status)">
+            <span class="status-chip" :class="`status-chip--${getStatusClass(data.Status)}`">
               {{ data.Status }}
             </span>
           </template>
 
-          <!-- Progress Template -->
           <template #progressTemplate="{ data }">
             <div class="progress-container">
-              <div class="progress-bar">
+              <div class="progress-linear">
                 <div 
-                  class="progress-fill"
-                  :style="{ width: `${data.Progress || 0}%` }"
+                  class="progress-linear__bar" 
+                  :style="{ transform: `scaleX(${(data.Progress || 0) / 100})` }"
                 ></div>
               </div>
-              <span class="progress-text">{{ data.Progress || 0 }}%</span>
+              <span class="mdc-typography--caption">{{ data.Progress || 0 }}%</span>
             </div>
           </template>
 
-          <!-- Actions Template -->
-          <template #actionsTemplate="{ data }">
-            <div class="action-buttons">
-              <button
-                class="action-btn view-btn"
-                @click="selectProject(data)"
-                :title="t('actions.view')"
-              >
-                👁️
-              </button>
-            </div>
+          <template #actionTemplate="{ data }">
+            <button
+              class="mdc-button mdc-button--outlined action-btn"
+              @click="selectProject(data)"
+              :title="t('actions.view')"
+            >
+              👁️
+            </button>
           </template>
         </ejs-grid>
       </div>
 
       <!-- PROJECT CARD VIEW -->
       <div v-else-if="showCard" class="card-view">
-        <div class="card-toolbar">
-          <h2>Projects ({{ filteredProjects.length }})</h2>
+        <div class="view-toolbar mdc-card">
+          <h2 class="mdc-typography--headline6">Projects ({{ filteredProjects.length }})</h2>
           <div class="toolbar-actions">
-            <button @click="refreshData" class="refresh-btn" :disabled="isLoading">
+            <button 
+              class="mdc-button mdc-button--outlined" 
+              @click="refreshData" 
+              :disabled="isLoading"
+            >
               🔄 Refresh
             </button>
-            <button @click="createProject" class="create-btn">
+            <button class="mdc-button mdc-button--raised" @click="createProject">
               ➕ Create Project
             </button>
           </div>
@@ -180,30 +186,30 @@
           <div
             v-for="project in filteredProjects"
             :key="project.ProjectID"
-            class="project-card"
+            class="mdc-card project-card"
             @click="selectProject(project)"
           >
             <div class="card-header">
-              <h3>{{ project.ProjectName }}</h3>
-              <span class="status-badge" :class="getStatusClass(project.Status)">
+              <h3 class="mdc-typography--headline6">{{ project.ProjectName }}</h3>
+              <span class="status-chip" :class="`status-chip--${getStatusClass(project.Status)}`">
                 {{ project.Status }}
               </span>
             </div>
             <div class="card-body">
-              <p class="project-description">{{ project.Description }}</p>
+              <p class="mdc-typography--body2 project-description">{{ project.Description }}</p>
               <div class="project-meta">
                 <div class="meta-item">
-                  <span class="meta-label">Owner:</span>
-                  <span class="meta-value">{{ project.Owner }}</span>
+                  <span class="mdc-typography--caption text-secondary">Owner:</span>
+                  <span class="mdc-typography--body2">{{ project.Owner }}</span>
                 </div>
                 <div class="meta-item">
-                  <span class="meta-label">Progress:</span>
-                  <span class="meta-value">{{ project.Progress || 0 }}%</span>
+                  <span class="mdc-typography--caption text-secondary">Progress:</span>
+                  <span class="mdc-typography--body2">{{ project.Progress || 0 }}%</span>
                 </div>
               </div>
             </div>
             <div class="card-footer">
-              <span class="date-range">
+              <span class="mdc-typography--caption date-range">
                 {{ formatDate(project.StartDate) }} - {{ formatDate(project.EndDate) }}
               </span>
             </div>
@@ -213,11 +219,18 @@
 
       <!-- PROJECT ROADMAP VIEW -->
       <div v-else-if="showRoadmap" class="roadmap-view">
-        <div class="roadmap-toolbar">
-          <h2>Project Roadmap</h2>
+        <div class="view-toolbar mdc-card">
+          <h2 class="mdc-typography--headline6">Project Roadmap</h2>
           <div class="toolbar-actions">
-            <button @click="refreshData" class="refresh-btn" :disabled="isLoading">
+            <button 
+              class="mdc-button mdc-button--outlined" 
+              @click="refreshData" 
+              :disabled="isLoading"
+            >
               🔄 Refresh
+            </button>
+            <button class="mdc-button mdc-button--raised" @click="createProject">
+              ➕ Create Project
             </button>
           </div>
         </div>
@@ -230,138 +243,86 @@
             @click="selectProject(project)"
           >
             <div class="timeline-marker"></div>
-            <div class="timeline-content">
-              <h4>{{ project.ProjectName }}</h4>
-              <p>{{ project.Description }}</p>
-              <div class="timeline-meta">
-                <span>{{ formatDate(project.StartDate) }} - {{ formatDate(project.EndDate) }}</span>
-                <span class="status-badge" :class="getStatusClass(project.Status)">
+            <div class="mdc-card timeline-content">
+              <div class="card-header">
+                <h4 class="mdc-typography--subtitle1">{{ project.ProjectName }}</h4>
+                <span class="status-chip" :class="`status-chip--${getStatusClass(project.Status)}`">
                   {{ project.Status }}
                 </span>
+              </div>
+              <p class="mdc-typography--body2">{{ project.Description }}</p>
+              <div class="timeline-meta">
+                <span class="mdc-typography--caption">{{ project.Owner }}</span>
+                <span class="mdc-typography--caption">
+                  {{ formatDate(project.StartDate) }} - {{ formatDate(project.EndDate) }}
+                </span>
+              </div>
+
+              <!-- Show milestones if available -->
+              <div v-if="project.milestones && project.milestones.length" class="milestones-list">
+                <div
+                  v-for="milestone in project.milestones"
+                  :key="milestone.PhaseID"
+                  class="mdc-card milestone-item"
+                  @click.stop="selectMilestone(milestone)"
+                >
+                  <h5 class="mdc-typography--subtitle2">{{ milestone.PhaseName }}</h5>
+                  <div class="milestone-meta">
+                    <span class="mdc-typography--caption">{{ milestone.Status }}</span>
+                    <span class="mdc-typography--caption">{{ formatDate(milestone.DueDate) }}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- MILESTONE/PROJECT DETAIL VIEW -->
-      <div v-else-if="selectedProject && !selectedMilestone" class="project-detail">
-        <div class="detail-toolbar">
-          <h2>{{ selectedProject.ProjectName }} - Milestones</h2>
-          <div class="toolbar-actions">
-            <button @click="createMilestone" class="create-btn">
-              ➕ Create Milestone
-            </button>
-          </div>
-        </div>
-
-        <div class="milestones-list">
-          <div
-            v-for="milestone in milestones"
-            :key="milestone.PhaseID"
-            class="milestone-item"
-            @click="selectMilestone(milestone)"
-          >
-            <h4>{{ milestone.PhaseName }}</h4>
-            <p>{{ milestone.Description }}</p>
-            <div class="milestone-meta">
-              <span>Start: {{ formatDate(milestone.StartDate) }}</span>
-              <span>End: {{ formatDate(milestone.EndDate) }}</span>
-              <span class="status-badge" :class="getStatusClass(milestone.Status)">
-                {{ milestone.Status }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- TASKS/KANBAN VIEW -->
-      <div v-else-if="selectedMilestone" class="tasks-view">
-        <div class="detail-toolbar">
-          <h2>{{ selectedMilestone.PhaseName }} - Tasks</h2>
-        </div>
-        
-        <div class="fallback">
-          <h3>Task Management Coming Soon</h3>
-          <p>Kanban board for task management will be implemented here.</p>
-          <ul>
-            <li>Drag & drop task cards</li>
-            <li>Rich text editor for descriptions</li>
-            <li>Team and owner assignment</li>
-            <li>Status tracking</li>
-          </ul>
-        </div>
-      </div>
-
       <!-- Empty State -->
       <div v-else class="empty-state">
-        <h3>No Projects Found</h3>
-        <p>Start by creating your first project.</p>
-        <button @click="createProject" class="create-btn">Create Project</button>
+        <h3 class="mdc-typography--headline6">No projects found</h3>
+        <p class="mdc-typography--body1">Get started by creating your first project.</p>
+        <button class="mdc-button mdc-button--raised" @click="createProject">
+          ➕ Create Project
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { useToast } from 'vue-toastification'
 import { useAppStore } from '@/stores/appStore'
 import { useProjectStore } from '@/stores/projectStore'
 import { useMilestoneStore } from '@/stores/milestoneStore'
 import { useLocalization } from '@/composables/useLocalization'
-import { useToast } from '@/composables/useToast'
 
 export default {
   name: 'ProjectsView',
-  props: {
-    projectId: String,
-    milestoneId: String,
-    searchQuery: String,
-    activeFilters: Object,
-    currentView: String
-  },
-  setup(props) {
-    const route = useRoute()
+  setup() {
+    // Core setup
     const router = useRouter()
+    const toast = useToast()
+    const { t } = useLocalization()
+    
+    // Stores
     const appStore = useAppStore()
     const projectStore = useProjectStore()
     const milestoneStore = useMilestoneStore()
-    const { t } = useLocalization()
-    const { showToast } = useToast()
-
-    // State
+    
+    // Reactive data
+    const projectGrid = ref(null)
+    const isLoading = ref(false)
+    const error = ref(null)
     const selectedProject = ref(null)
     const selectedMilestone = ref(null)
     const milestones = ref([])
-    const error = ref(null)
-    const projectGrid = ref(null)
-
-    // Computed
-    const isLoading = computed(() => projectStore.isLoading || milestoneStore.isLoading)
+    
+    // Computed properties
     const currentView = computed(() => appStore.currentView)
-    const filteredProjects = computed(() => {
-      let projects = projectStore.projects
-      
-      // Apply search filter
-      if (appStore.searchQuery) {
-        const query = appStore.searchQuery.toLowerCase()
-        projects = projects.filter(project =>
-          project.ProjectName?.toLowerCase().includes(query) ||
-          project.Description?.toLowerCase().includes(query) ||
-          project.Owner?.toLowerCase().includes(query)
-        )
-      }
-      
-      // Apply additional filters
-      const filters = appStore.activeFilters
-      if (filters.status && filters.status.length > 0) {
-        projects = projects.filter(project => filters.status.includes(project.Status))
-      }
-      
-      return projects
-    })
-
+    const filteredProjects = computed(() => projectStore.filteredProjects)
     const showList = computed(() => currentView.value === 'list')
     const showCard = computed(() => currentView.value === 'card')
     const showRoadmap = computed(() => currentView.value === 'roadmap')
@@ -424,18 +385,18 @@ export default {
       switch (status?.toLowerCase()) {
         case 'active':
         case 'in progress':
-          return 'status-active'
+          return 'active'
         case 'planning':
         case 'pending':
-          return 'status-planning'
+          return 'planning'
         case 'completed':
         case 'done':
-          return 'status-completed'
+          return 'completed'
         case 'cancelled':
         case 'on hold':
-          return 'status-cancelled'
+          return 'cancelled'
         default:
-          return 'status-default'
+          return 'default'
       }
     }
 
@@ -452,74 +413,69 @@ export default {
         router.push(`/projects/${project.ProjectID}`)
       } catch (err) {
         error.value = 'Failed to load project details'
-        showToast('Failed to load project details', 'error')
+        toast.error('Failed to load project details')
       }
     }
 
-    const selectMilestone = (milestone) => {
-      selectedMilestone.value = milestone
-      router.push(`/projects/${selectedProject.value.ProjectID}/milestones/${milestone.PhaseID}`)
+    const selectMilestone = async (milestone) => {
+      try {
+        selectedMilestone.value = milestone
+        router.push(`/projects/${selectedProject.value.ProjectID}/milestones/${milestone.PhaseID}`)
+      } catch (err) {
+        error.value = 'Failed to load milestone details'
+        toast.error('Failed to load milestone details')
+      }
     }
 
     const navigateTo = (crumb) => {
       if (crumb.id === 'projects') {
         selectedProject.value = null
         selectedMilestone.value = null
-        appStore.setCurrentView('list')
         router.push('/projects')
       } else if (crumb.type === 'project') {
         selectedMilestone.value = null
         router.push(`/projects/${crumb.id}`)
+      } else if (crumb.type === 'milestone') {
+        router.push(`/projects/${selectedProject.value.ProjectID}/milestones/${crumb.id}`)
       }
     }
 
     const loadData = async () => {
       try {
+        isLoading.value = true
         error.value = null
-        
-        // Load projects
         await projectStore.fetchProjects()
-        
-        // Handle route parameters
-        if (props.projectId) {
-          const project = projectStore.projects.find(p => p.ProjectID === props.projectId)
-          if (project) {
-            await selectProject(project)
-            
-            if (props.milestoneId) {
-              const milestone = milestones.value.find(m => m.PhaseID === props.milestoneId)
-              if (milestone) {
-                selectMilestone(milestone)
-              }
-            }
-          }
-        }
       } catch (err) {
-        error.value = 'Failed to load data'
-        showToast('Failed to load data', 'error')
+        error.value = err.message || 'Failed to load projects'
+        toast.error('Failed to load projects')
+      } finally {
+        isLoading.value = false
       }
     }
 
     const refreshData = async () => {
       await loadData()
-      showToast('Data refreshed', 'success')
     }
 
-    const refreshGrid = () => {
+    const refreshGrid = async () => {
+      await loadData()
       if (projectGrid.value) {
         projectGrid.value.refresh()
       }
     }
 
     const createProject = () => {
-      showToast('Create project functionality coming soon', 'info')
+      // Navigate to project creation or open dialog
+      router.push('/projects/new')
     }
 
     const createMilestone = () => {
-      showToast('Create milestone functionality coming soon', 'info')
+      if (selectedProject.value) {
+        router.push(`/projects/${selectedProject.value.ProjectID}/milestones/new`)
+      }
     }
 
-    // Grid Events
+    // Grid event handlers
     const onRowSelected = (args) => {
       // Handle row selection if needed
     }
@@ -529,25 +485,29 @@ export default {
     }
 
     const onActionComplete = (args) => {
-      // Handle grid actions
+      // Handle grid actions completion
+      if (args.requestType === 'refresh') {
+        // Grid refreshed
+      }
     }
 
-    // Watchers
-    watch(() => route.params, (newParams) => {
-      if (newParams.projectId !== props.projectId || newParams.milestoneId !== props.milestoneId) {
-        loadData()
-      }
-    }, { immediate: false })
-
-    // Lifecycle
-    onMounted(() => {
-      loadData()
+    // Lifecycle hooks
+    onMounted(async () => {
+      await loadData()
     })
 
+    onUnmounted(() => {
+      // Cleanup if needed
+    })
+
+    // Watch for view changes
+    watch(currentView, (newView) => {
+      // Handle view-specific logic if needed
+    })
+
+    // Return reactive references and methods
     return {
-      // State
-      selectedProject,
-      selectedMilestone,
+      // Refs
       milestones,
       error,
       projectGrid,
@@ -598,147 +558,88 @@ export default {
 </script>
 
 <style scoped>
+/* Component-specific styles that don't conflict with global Material Design theme */
+
 .projects-view {
-  min-height: 100vh;
-  background: #f5f5f5;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--mdc-theme-background);
 }
 
 /* Breadcrumbs */
 .breadcrumbs {
-  padding: 1rem;
-  background: #f8f9fa;
-  border-bottom: 1px solid #ddd;
-  font-size: 0.875rem;
+  padding: var(--mdc-spacing-md);
+  background: var(--mdc-theme-surface);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: var(--mdc-elevation-01);
 }
 
 .breadcrumb {
   cursor: pointer;
-  color: #007bff;
+  color: var(--mdc-theme-primary);
+  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .breadcrumb:hover {
+  color: var(--mdc-theme-primary-variant);
   text-decoration: underline;
 }
 
 /* Content */
 .view-content {
-  padding: 1rem;
+  flex: 1;
+  padding: var(--mdc-spacing-md);
+  overflow: auto;
 }
 
-/* Loading */
-.loading {
-  text-align: center;
-  padding: 2rem;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #007bff;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 1rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Error */
-.error {
-  text-align: center;
-  padding: 2rem;
-  color: #dc3545;
-}
-
-/* Empty State */
+/* Loading and Error States */
+.loading-state,
+.error-state,
 .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--mdc-spacing-xl);
   text-align: center;
-  padding: 2rem;
-  color: #666;
 }
 
-/* Toolbar Styling */
-.list-toolbar,
-.card-toolbar,
-.roadmap-toolbar,
-.detail-toolbar {
+.loading-state .mdc-circular-progress {
+  margin-bottom: var(--mdc-spacing-md);
+}
+
+/* Toolbar */
+.view-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
-  padding: 1rem;
-  background: white;
-  border-radius: 8px;
-  border: 1px solid #ddd;
+  padding: var(--mdc-spacing-md);
+  margin-bottom: var(--mdc-spacing-md);
 }
 
-.list-toolbar h2,
-.card-toolbar h2,
-.roadmap-toolbar h2,
-.detail-toolbar h2 {
+.view-toolbar h2 {
   margin: 0;
-  color: #333;
 }
 
 .toolbar-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--mdc-spacing-sm);
 }
 
-.create-btn {
-  background: #28a745;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.create-btn:hover {
-  background: #218838;
-}
-
-.refresh-btn {
-  background: #17a2b8;
-  color: white;
-  border: none;
-  padding: 0.5rem;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.refresh-btn:hover {
-  background: #138496;
-}
-
-.refresh-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Grid Styling */
+/* Grid customizations */
 .project-grid {
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  border: 1px solid #ddd;
+  margin-bottom: var(--mdc-spacing-md);
 }
 
-/* Custom cell templates */
 .project-name-cell {
-  padding: 0.5rem 0;
+  padding: var(--mdc-spacing-xs) 0;
 }
 
 .project-title {
-  font-weight: 600;
-  color: #007bff;
   cursor: pointer;
-  margin-bottom: 0.25rem;
-  line-height: 1.2;
+  margin-bottom: var(--mdc-spacing-xs);
+  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .project-title:hover {
@@ -746,256 +647,176 @@ export default {
 }
 
 .project-id {
-  font-size: 0.75rem;
-  color: #666;
-}
-
-.status-badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  display: inline-block;
-}
-
-.status-active {
-  background: #d4edda;
-  color: #155724;
-}
-
-.status-planning {
-  background: #fff3cd;
-  color: #856404;
-}
-
-.status-completed {
-  background: #cce5ff;
-  color: #004085;
-}
-
-.status-cancelled {
-  background: #f8d7da;
-  color: #721c24;
-}
-
-.status-default {
-  background: #e9ecef;
-  color: #495057;
+  opacity: 0.7;
 }
 
 .progress-container {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--mdc-spacing-sm);
 }
 
-.progress-bar {
+.progress-linear {
   flex: 1;
-  height: 8px;
-  background: #e9ecef;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: #007bff;
-  transition: width 0.3s ease;
-}
-
-.progress-text {
-  font-size: 0.75rem;
-  color: #666;
-  min-width: 35px;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 0.25rem;
+  min-width: 60px;
 }
 
 .action-btn {
-  background: none;
-  border: none;
-  padding: 0.25rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.action-btn:hover {
-  background: #f8f9fa;
+  min-width: 36px !important;
+  width: 36px;
+  height: 36px;
+  padding: 0 !important;
 }
 
 /* Card View */
 .projects-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
+  gap: var(--mdc-spacing-md);
 }
 
 .project-card {
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 1.5rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 280ms cubic-bezier(0.4, 0, 0.2, 1);
+  padding: var(--mdc-spacing-md);
 }
 
 .project-card:hover {
+  box-shadow: var(--mdc-elevation-04);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1rem;
+  margin-bottom: var(--mdc-spacing-md);
+  gap: var(--mdc-spacing-sm);
 }
 
 .card-header h3 {
   margin: 0;
-  color: #333;
   flex: 1;
 }
 
 .card-body {
-  margin-bottom: 1rem;
+  margin-bottom: var(--mdc-spacing-md);
 }
 
 .project-description {
-  color: #666;
-  margin-bottom: 1rem;
+  margin-bottom: var(--mdc-spacing-md);
   line-height: 1.4;
 }
 
 .project-meta {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--mdc-spacing-xs);
 }
 
 .meta-item {
   display: flex;
   justify-content: space-between;
-}
-
-.meta-label {
-  font-weight: 500;
-  color: #666;
-}
-
-.meta-value {
-  color: #333;
+  align-items: center;
 }
 
 .card-footer {
-  border-top: 1px solid #eee;
-  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  padding-top: var(--mdc-spacing-md);
   text-align: center;
-  font-size: 0.875rem;
-  color: #666;
 }
 
 /* Roadmap View */
 .roadmap-timeline {
   position: relative;
-  margin-top: 2rem;
+  margin-top: var(--mdc-spacing-md);
 }
 
 .timeline-item {
   position: relative;
-  margin-bottom: 2rem;
-  padding-left: 3rem;
+  margin-bottom: var(--mdc-spacing-lg);
+  padding-left: calc(var(--mdc-spacing-xl) + var(--mdc-spacing-sm));
   cursor: pointer;
 }
 
 .timeline-marker {
   position: absolute;
   left: 0;
-  top: 0.5rem;
+  top: var(--mdc-spacing-sm);
   width: 16px;
   height: 16px;
-  background: #007bff;
+  background: var(--mdc-theme-primary);
   border-radius: 50%;
+  box-shadow: var(--mdc-elevation-02);
 }
 
 .timeline-content {
-  background: white;
-  padding: 1rem;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  transition: all 0.3s ease;
+  padding: var(--mdc-spacing-md);
+  transition: all 280ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .timeline-item:hover .timeline-content {
-  transform: translateX(8px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transform: translateX(var(--mdc-spacing-sm));
+  box-shadow: var(--mdc-elevation-04);
 }
 
 .timeline-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 0.5rem;
-  font-size: 0.875rem;
-  color: #666;
+  margin-top: var(--mdc-spacing-sm);
+  flex-wrap: wrap;
+  gap: var(--mdc-spacing-sm);
 }
 
 /* Milestones */
 .milestones-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: var(--mdc-spacing-sm);
+  margin-top: var(--mdc-spacing-md);
 }
 
 .milestone-item {
-  background: white;
-  border: 1px solid #ddd;
-  border-left: 4px solid #007bff;
-  border-radius: 8px;
-  padding: 1rem;
+  padding: var(--mdc-spacing-sm);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 280ms cubic-bezier(0.4, 0, 0.2, 1);
+  border-left: 4px solid var(--mdc-theme-primary);
 }
 
 .milestone-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transform: translateY(-1px);
+  box-shadow: var(--mdc-elevation-02);
+}
+
+.milestone-item h5 {
+  margin: 0 0 var(--mdc-spacing-xs) 0;
 }
 
 .milestone-meta {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 1rem;
-  margin-top: 0.5rem;
-  font-size: 0.875rem;
-  color: #666;
+  gap: var(--mdc-spacing-xs);
 }
 
-/* Fallback */
-.fallback {
-  text-align: center;
-  padding: 2rem;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  margin: 2rem;
-}
-
-.fallback ul {
-  text-align: left;
-  display: inline-block;
-  margin: 1rem 0;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
+/* Responsive Design */
+@media (max-width: 599px) {
+  .view-content {
+    padding: var(--mdc-spacing-sm);
+  }
+  
+  .view-toolbar {
+    flex-direction: column;
+    gap: var(--mdc-spacing-sm);
+    align-items: stretch;
+  }
+  
+  .toolbar-actions {
+    justify-content: center;
+  }
+  
   .projects-cards,
   .milestones-list {
     grid-template-columns: 1fr;
@@ -1003,12 +824,12 @@ export default {
 
   .card-header {
     flex-direction: column;
-    gap: 0.5rem;
     align-items: flex-start;
+    gap: var(--mdc-spacing-sm);
   }
 
   .timeline-item {
-    padding-left: 2rem;
+    padding-left: var(--mdc-spacing-lg);
   }
 
   .timeline-marker {
@@ -1016,20 +837,34 @@ export default {
     height: 12px;
   }
 
-  .timeline-meta {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-
+  .timeline-meta,
   .milestone-meta {
     flex-direction: column;
-    gap: 0.5rem;
+    align-items: flex-start;
   }
+}
 
-  .toolbar-actions {
-    flex-direction: column;
-    gap: 0.5rem;
+@media (min-width: 600px) and (max-width: 1023px) {
+  .projects-cards {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+  
+  .milestones-list {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .view-content {
+    padding: var(--mdc-spacing-lg);
+  }
+  
+  .projects-cards {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  }
+  
+  .milestones-list {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   }
 }
 </style>

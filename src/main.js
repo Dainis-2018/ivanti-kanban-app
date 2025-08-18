@@ -17,7 +17,7 @@ import { DropDownListPlugin, MultiSelectPlugin } from '@syncfusion/ej2-vue-dropd
 import { DatePickerPlugin, DateRangePickerPlugin } from '@syncfusion/ej2-vue-calendars'
 import { TextBoxPlugin } from '@syncfusion/ej2-vue-inputs'
 import { ToastPlugin } from '@syncfusion/ej2-vue-notifications'
-import { SchedulePlugin } from '@syncfusion/ej2-vue-schedule'
+import { Schedule, Day, Week, WorkWeek, Month, Agenda, Resize as ScheduleResize, DragAndDrop } from '@syncfusion/ej2-vue-schedule'
 
 // Import Kanban component only (not plugin to avoid conflicts)
 import { Kanban } from '@syncfusion/ej2-vue-kanban'
@@ -37,6 +37,9 @@ if (import.meta.env.VITE_SYNCFUSION_LICENSE_KEY) {
 
 // IMPORTANT: Inject Grid feature modules BEFORE creating the app
 Grid.Inject(Filter, Sort, Page, Reorder, Resize, ColumnChooser, ColumnMenu, Search, Selection)
+
+// Inject Schedule feature modules
+Schedule.Inject(Day, Week, WorkWeek, Month, Agenda, ScheduleResize, DragAndDrop)
 
 const app = createApp(App)
 
@@ -74,10 +77,10 @@ app.use(DatePickerPlugin)
 app.use(DateRangePickerPlugin)
 app.use(TextBoxPlugin)
 app.use(ToastPlugin)
-app.use(SchedulePlugin)
 
-// 3. Manual Kanban registration to avoid column component conflicts
+// 3. Manual component registration for components with shared directives (like e-column)
 app.component('ejs-kanban', Kanban)
+app.component('ejs-schedule', Schedule)
 
 // Mount the application
 app.mount('#app')
@@ -92,6 +95,6 @@ if (import.meta.env.DEV) {
   console.log('  - GridPlugin (with e-column, e-columns)')
   console.log('  - RichTextEditor, Button, DropDownList, MultiSelect')
   console.log('  - DatePicker, DateRangePicker, TextBox, Toast, Schedule')
-  console.log('  - Kanban (manual registration)')
+  console.log('  - Kanban, Schedule (manual registration)')
   console.log('✅ Application ready')
 }

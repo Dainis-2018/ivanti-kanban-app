@@ -1,31 +1,390 @@
-/* assets/styles/syncfusion-theme.css - Syncfusion Component Customizations */
+/* assets/styles/syncfusion-theme.css - Enhanced Syncfusion Material Design Integration */
 
-/* Kanban Board Customizations */
-.e-kanban {
-  font-family: inherit;
+/* Syncfusion Material Design Variables Override */
+:root {
+  /* Override Syncfusion default colors with Material Design */
+  --primary-color: #1976d2;
+  --primary-variant: #1565c0;
+  --secondary-color: #03dac6;
+  --surface-color: #ffffff;
+  --background-color: #fafafa;
+  --error-color: #b00020;
+  --on-primary: #ffffff;
+  --on-secondary: #000000;
+  --on-surface: #000000;
+  --on-background: #000000;
+  --on-error: #ffffff;
+}
+
+/* Grid Component Material Design Enhancement */
+.e-grid {
+  font-family: 'Roboto', 'Segoe UI', system-ui, -apple-system, sans-serif;
   border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2), 
+              0 1px 1px 0 rgba(0, 0, 0, 0.14), 
+              0 1px 3px 0 rgba(0, 0, 0, 0.12);
+  border: none;
+  background: var(--surface-color);
+}
+
+.e-grid .e-gridheader {
+  background: #f5f5f5;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  height: 56px;
+}
+
+.e-grid .e-columnheader {
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.87);
+  padding: 16px;
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+  text-transform: uppercase;
+  letter-spacing: 0.0892857143em;
+}
+
+.e-grid .e-columnheader:last-child {
+  border-right: none;
+}
+
+.e-grid .e-row {
+  min-height: 52px;
+  transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.e-grid .e-row:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.e-grid .e-row:focus {
+  background-color: rgba(0, 0, 0, 0.12);
+  outline: none;
+}
+
+.e-grid .e-rowcell {
+  padding: 16px;
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.e-grid .e-rowcell:last-child {
+  border-right: none;
+}
+
+.e-grid .e-altrow {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.e-grid .e-selectionbackground {
+  background-color: rgba(25, 118, 210, 0.08) !important;
+}
+
+/* Pager Material Design */
+.e-pager {
+  background: var(--surface-color);
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 56px;
+}
+
+.e-pager .e-pagercontainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.e-pager .e-link {
+  min-width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: rgba(0, 0, 0, 0.54);
+  text-decoration: none;
+  transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.e-pager .e-link:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.e-pager .e-currentitem {
+  background-color: var(--primary-color) !important;
+  color: var(--on-primary) !important;
+}
+
+/* Button Component Enhancement */
+.e-btn {
+  font-family: 'Roboto', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 2.25rem;
+  letter-spacing: 0.0892857143em;
+  text-transform: uppercase;
+  border-radius: 4px;
+  padding: 0 16px;
+  min-width: 64px;
+  height: 36px;
+  transition: all 280ms cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  outline: none;
+  cursor: pointer;
+  position: relative;
   overflow: hidden;
 }
 
+.e-btn.e-primary {
+  background-color: var(--primary-color);
+  color: var(--on-primary);
+  box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 
+              0 2px 2px 0 rgba(0, 0, 0, 0.14), 
+              0 1px 5px 0 rgba(0, 0, 0, 0.12);
+}
+
+.e-btn.e-primary:hover {
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.2), 
+              0 4px 5px 0 rgba(0, 0, 0, 0.14), 
+              0 1px 10px 0 rgba(0, 0, 0, 0.12);
+}
+
+.e-btn.e-primary:active {
+  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2), 
+              0 8px 10px 1px rgba(0, 0, 0, 0.14), 
+              0 3px 14px 2px rgba(0, 0, 0, 0.12);
+}
+
+.e-btn.e-outline {
+  background: transparent;
+  border: 1px solid currentColor;
+  color: var(--primary-color);
+}
+
+.e-btn.e-flat {
+  background: transparent;
+  color: var(--primary-color);
+  box-shadow: none;
+}
+
+.e-btn.e-flat:hover {
+  background-color: rgba(25, 118, 210, 0.04);
+}
+
+/* Dropdown Component */
+.e-dropdownlist {
+  font-family: 'Roboto', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+.e-dropdownlist .e-input-group {
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.42);
+  border-radius: 4px 4px 0 0;
+  background-color: rgba(0, 0, 0, 0.04);
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.e-dropdownlist .e-input-group:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+  border-bottom-color: rgba(0, 0, 0, 0.87);
+}
+
+.e-dropdownlist .e-input-group.e-input-focus {
+  background-color: rgba(0, 0, 0, 0.12);
+  border-bottom: 2px solid var(--primary-color);
+}
+
+.e-dropdownlist .e-input {
+  padding: 16px 12px 8px;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  color: rgba(0, 0, 0, 0.87);
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+/* Input Components */
+.e-textbox,
+.e-input-group .e-input {
+  font-family: 'Roboto', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  padding: 16px 12px 8px;
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.42);
+  border-radius: 4px 4px 0 0;
+  background-color: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.87);
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+}
+
+.e-textbox:hover,
+.e-input-group .e-input:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+  border-bottom-color: rgba(0, 0, 0, 0.87);
+}
+
+.e-textbox:focus,
+.e-input-group .e-input:focus {
+  background-color: rgba(0, 0, 0, 0.12);
+  border-bottom: 2px solid var(--primary-color);
+}
+
+/* DatePicker Component */
+.e-datepicker .e-input-group {
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.42);
+  border-radius: 4px 4px 0 0;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.e-datepicker .e-input-group:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+  border-bottom-color: rgba(0, 0, 0, 0.87);
+}
+
+.e-datepicker .e-input-group.e-input-focus {
+  background-color: rgba(0, 0, 0, 0.12);
+  border-bottom: 2px solid var(--primary-color);
+}
+
+/* Dialog Component */
+.e-dialog {
+  border-radius: 8px;
+  box-shadow: 0 11px 15px -7px rgba(0, 0, 0, 0.2), 
+              0 24px 38px 3px rgba(0, 0, 0, 0.14), 
+              0 9px 46px 8px rgba(0, 0, 0, 0.12);
+  font-family: 'Roboto', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+.e-dialog .e-dlg-header {
+  background: var(--surface-color);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 20px 24px;
+}
+
+.e-dialog .e-dlg-header-content {
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 2rem;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.e-dialog .e-dlg-content {
+  padding: 20px 24px;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.e-dialog .e-footer-content {
+  padding: 8px 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  background: var(--surface-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Toast Notifications Material Design */
+.e-toast {
+  border-radius: 4px;
+  box-shadow: 0 3px 5px -1px rgba(0, 0, 0, 0.2), 
+              0 6px 10px 0 rgba(0, 0, 0, 0.14), 
+              0 1px 18px 0 rgba(0, 0, 0, 0.12);
+  border: none;
+  font-family: 'Roboto', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  max-width: 568px;
+  min-width: 288px;
+  padding: 14px 16px;
+}
+
+.e-toast.e-toast-success {
+  background-color: #4caf50;
+  color: #ffffff;
+}
+
+.e-toast.e-toast-error {
+  background-color: #f44336;
+  color: #ffffff;
+}
+
+.e-toast.e-toast-warning {
+  background-color: #ff9800;
+  color: #ffffff;
+}
+
+.e-toast.e-toast-info {
+  background-color: #2196f3;
+  color: #ffffff;
+}
+
+.e-toast .e-toast-message {
+  font-weight: 400;
+  color: inherit;
+}
+
+.e-toast .e-toast-title {
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: inherit;
+}
+
+/* Kanban Board Material Design Enhancement */
+.e-kanban {
+  font-family: 'Roboto', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2), 
+              0 1px 1px 0 rgba(0, 0, 0, 0.14), 
+              0 1px 3px 0 rgba(0, 0, 0, 0.12);
+  background: var(--background-color);
+}
+
 .e-kanban .e-kanban-header {
-  background: #f8f9fa;
-  border-bottom: 2px solid #e0e0e0;
-  padding: 12px 16px;
+  background: #f5f5f5;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 16px;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
 }
 
 .e-kanban .e-header-text {
-  font-weight: 600;
-  color: #333;
-  font-size: 16px;
+  font-weight: 500;
+  font-size: 1rem;
+  color: rgba(0, 0, 0, 0.87);
+  text-transform: uppercase;
+  letter-spacing: 0.0892857143em;
 }
 
 .e-kanban .e-header-cells {
-  background: #f8f9fa;
+  background: #f5f5f5;
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.e-kanban .e-header-cells:last-child {
+  border-right: none;
 }
 
 .e-kanban .e-content-cells {
-  background: #f5f5f5;
+  background: var(--background-color);
   padding: 8px;
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+  min-height: 500px;
+}
+
+.e-kanban .e-content-cells:last-child {
+  border-right: none;
 }
 
 .e-kanban .e-content-row {
@@ -33,296 +392,283 @@
 }
 
 .e-kanban .e-card {
-  border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2), 
+              0 1px 1px 0 rgba(0, 0, 0, 0.14), 
+              0 1px 3px 0 rgba(0, 0, 0, 0.12);
   border: none;
   margin-bottom: 8px;
-  transition: all 0.2s ease;
+  background: var(--surface-color);
+  transition: all 280ms cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
 }
 
 .e-kanban .e-card:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  transform: translateY(-1px);
+  box-shadow: 0 3px 5px -1px rgba(0, 0, 0, 0.2), 
+              0 6px 10px 0 rgba(0, 0, 0, 0.14), 
+              0 1px 18px 0 rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
 }
 
 .e-kanban .e-card-header {
-  padding: 12px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 .e-kanban .e-card-content {
-  padding: 12px;
+  padding: 16px;
 }
 
 .e-kanban .e-card-header-caption {
-  font-weight: 600;
-  color: #333;
-  font-size: 14px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.87);
+  line-height: 1.25rem;
+  margin-bottom: 4px;
 }
 
 .e-kanban .e-card-header-title {
-  color: #666;
-  font-size: 12px;
-  margin-top: 4px;
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.54);
+  line-height: 1.25rem;
+  font-weight: 400;
 }
 
-/* Grid Customizations */
-.e-grid {
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.e-grid .e-gridheader {
-  background: #f8f9fa;
-  border-bottom: 2px solid #e0e0e0;
-}
-
-.e-grid .e-columnheader {
-  font-weight: 600;
-  color: #333;
-  padding: 12px 8px;
-  border-right: 1px solid #e0e0e0;
-}
-
-.e-grid .e-row {
-  transition: background-color 0.2s ease;
-}
-
-.e-grid .e-row:hover {
-  background: #f8f9fa;
-}
-
-.e-grid .e-rowcell {
-  padding: 12px 8px;
-  border-right: 1px solid #f0f0f0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.e-grid .e-altrow {
-  background: #fafafa;
-}
-
-/* Button Customizations */
-.e-btn {
-  font-family: inherit;
+.e-kanban .e-card-tag {
+  background: var(--primary-color);
+  color: var(--on-primary);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.625rem;
   font-weight: 500;
-  border-radius: 4px;
-  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.1666666667em;
+  display: inline-block;
+  margin-top: 8px;
 }
 
-.e-btn.e-primary {
-  background: #0078d4;
-  border-color: #0078d4;
-}
-
-.e-btn.e-primary:hover {
-  background: #106ebe;
-  border-color: #106ebe;
-}
-
-.e-btn.e-secondary {
-  background: #f3f2f1;
-  border-color: #ddd;
-  color: #333;
-}
-
-.e-btn.e-secondary:hover {
-  background: #e5e5e5;
-  border-color: #bbb;
-}
-
-/* Dialog Customizations */
-.e-dialog {
-  border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-}
-
-.e-dialog .e-dlg-header {
-  background: #f8f9fa;
-  border-bottom: 1px solid #e0e0e0;
-  padding: 16px 20px;
-}
-
-.e-dialog .e-dlg-header-content {
-  font-weight: 600;
-  color: #333;
-  font-size: 18px;
-}
-
-.e-dialog .e-dlg-content {
-  padding: 20px;
-}
-
-.e-dialog .e-footer-content {
-  padding: 16px 20px;
-  border-top: 1px solid #e0e0e0;
-  background: #f8f9fa;
-}
-
-/* Dropdown Customizations */
-.e-dropdownlist .e-input {
-  border-radius: 4px;
-  border: 1px solid #ddd;
-  padding: 8px 12px;
-  font-size: 14px;
-  transition: border-color 0.2s ease;
-}
-
-.e-dropdownlist .e-input:focus {
-  border-color: #0078d4;
-  box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.2);
-}
-
-.e-dropdownlist .e-ddl-icon {
-  color: #666;
-}
-
-/* DatePicker Customizations */
-.e-datepicker .e-input {
-  border-radius: 4px;
-  border: 1px solid #ddd;
-  padding: 8px 12px;
-  font-size: 14px;
-  transition: border-color 0.2s ease;
-}
-
-.e-datepicker .e-input:focus {
-  border-color: #0078d4;
-  box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.2);
-}
-
-/* TextBox Customizations */
-.e-textbox {
-  border-radius: 4px;
-  border: 1px solid #ddd;
-  padding: 8px 12px;
-  font-size: 14px;
-  transition: border-color 0.2s ease;
-}
-
-.e-textbox:focus {
-  border-color: #0078d4;
-  box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.2);
-}
-
-/* RichTextEditor Customizations */
+/* RichTextEditor Material Design */
 .e-richtexteditor {
-  border-radius: 4px;
-  border: 1px solid #ddd;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
   overflow: hidden;
+  font-family: 'Roboto', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2), 
+              0 1px 1px 0 rgba(0, 0, 0, 0.14), 
+              0 1px 3px 0 rgba(0, 0, 0, 0.12);
 }
 
 .e-richtexteditor .e-rte-toolbar {
-  background: #f8f9fa;
-  border-bottom: 1px solid #e0e0e0;
-  padding: 8px 12px;
+  background: #f5f5f5;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 8px;
+  min-height: 48px;
 }
 
 .e-richtexteditor .e-toolbar-item {
   border-radius: 4px;
   margin: 2px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .e-richtexteditor .e-toolbar-item:hover {
-  background: #e5e5e5;
+  background-color: rgba(0, 0, 0, 0.04);
 }
 
 .e-richtexteditor .e-toolbar-item.e-active {
-  background: #0078d4;
-  color: white;
+  background-color: var(--primary-color);
+  color: var(--on-primary);
 }
 
 .e-richtexteditor .e-content {
-  padding: 12px;
+  padding: 16px;
   min-height: 200px;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  color: rgba(0, 0, 0, 0.87);
 }
 
-/* Toast Customizations */
-.e-toast {
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  border: none;
-}
-
-.e-toast.e-toast-success {
-  background: #d4edda;
-  border-left: 4px solid #28a745;
-  color: #155724;
-}
-
-.e-toast.e-toast-error {
-  background: #f8d7da;
-  border-left: 4px solid #dc3545;
-  color: #721c24;
-}
-
-.e-toast.e-toast-warning {
-  background: #fff3cd;
-  border-left: 4px solid #ffc107;
-  color: #856404;
-}
-
-.e-toast.e-toast-info {
-  background: #d1ecf1;
-  border-left: 4px solid #17a2b8;
-  color: #0c5460;
-}
-
-/* Schedule Customizations */
+/* Schedule Component Material Design */
 .e-schedule {
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2), 
+              0 1px 1px 0 rgba(0, 0, 0, 0.14), 
+              0 1px 3px 0 rgba(0, 0, 0, 0.12);
+  font-family: 'Roboto', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--surface-color);
 }
 
 .e-schedule .e-schedule-toolbar {
-  background: #f8f9fa;
-  border-bottom: 1px solid #e0e0e0;
-  padding: 12px;
+  background: #f5f5f5;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 16px;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+}
+
+.e-schedule .e-toolbar-item {
+  margin: 0 4px;
 }
 
 .e-schedule .e-header-cells {
-  background: #f8f9fa;
-  border-bottom: 1px solid #e0e0e0;
-  font-weight: 600;
+  background: #f5f5f5;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.87);
+  padding: 12px;
+  text-align: center;
+}
+
+.e-schedule .e-header-cells:last-child {
+  border-right: none;
 }
 
 .e-schedule .e-work-cells {
-  border-right: 1px solid #f0f0f0;
-  border-bottom: 1px solid #f0f0f0;
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  background: var(--surface-color);
+  min-height: 60px;
+}
+
+.e-schedule .e-work-cells:last-child {
+  border-right: none;
 }
 
 .e-schedule .e-appointment {
   border-radius: 4px;
   border: none;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2), 
+              0 1px 1px 0 rgba(0, 0, 0, 0.14), 
+              0 1px 3px 0 rgba(0, 0, 0, 0.12);
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 4px 8px;
+  transition: all 280ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Dark Theme Variables (for future implementation) */
-:root {
-  --primary-color: #0078d4;
-  --primary-hover: #106ebe;
-  --secondary-color: #f3f2f1;
-  --success-color: #28a745;
-  --danger-color: #dc3545;
-  --warning-color: #ffc107;
-  --info-color: #17a2b8;
-  --light-color: #f8f9fa;
-  --dark-color: #343a40;
+.e-schedule .e-appointment:hover {
+  box-shadow: 0 3px 5px -1px rgba(0, 0, 0, 0.2), 
+              0 6px 10px 0 rgba(0, 0, 0, 0.14), 
+              0 1px 18px 0 rgba(0, 0, 0, 0.12);
+}
+
+/* Custom Material Design Status Classes */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  height: 32px;
+  border-radius: 16px;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.25rem;
+  letter-spacing: 0.0178571429em;
+  text-transform: capitalize;
+}
+
+.status-chip--active {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+}
+
+.status-chip--completed {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-chip--planning {
+  background-color: #fff3e0;
+  color: #f57c00;
+}
+
+.status-chip--cancelled {
+  background-color: #ffebee;
+  color: #d32f2f;
+}
+
+.status-chip--default {
+  background-color: rgba(0, 0, 0, 0.12);
+  color: rgba(0, 0, 0, 0.87);
+}
+
+/* Progress Bar Material Design */
+.progress-linear {
+  height: 4px;
+  overflow: hidden;
+  position: relative;
+  background-color: rgba(25, 118, 210, 0.24);
+  border-radius: 2px;
+}
+
+.progress-linear__bar {
+  height: 100%;
+  background-color: var(--primary-color);
+  border-radius: 2px;
+  transition: transform 250ms cubic-bezier(0.4, 0, 0.6, 1);
+  transform-origin: left;
+}
+
+/* Responsive Material Design Breakpoints */
+@media (max-width: 599px) {
+  .e-grid .e-columnheader,
+  .e-grid .e-rowcell {
+    padding: 12px 8px;
+    font-size: 0.8125rem;
+  }
   
-  --background-color: #ffffff;
-  --surface-color: #f8f9fa;
-  --border-color: #e0e0e0;
-  --text-color: #333333;
-  --text-muted: #666666;
+  .e-btn {
+    height: 32px;
+    padding: 0 12px;
+    font-size: 0.8125rem;
+    min-width: 56px;
+  }
   
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.15);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.2);
+  .e-kanban .e-card {
+    margin-bottom: 6px;
+  }
   
-  --border-radius: 4px;
-  --border-radius-lg: 8px;
+  .e-kanban .e-card-header,
+  .e-kanban .e-card-content {
+    padding: 12px;
+  }
   
-  --transition: all 0.2s ease;
+  .e-dialog .e-dlg-header,
+  .e-dialog .e-dlg-content {
+    padding: 16px;
+  }
+  
+  .status-chip {
+    height: 28px;
+    padding: 0 8px;
+    font-size: 0.8125rem;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 1023px) {
+  .e-kanban .e-content-cells {
+    padding: 6px;
+    min-height: 400px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .e-kanban .e-content-cells {
+    padding: 8px;
+    min-height: 600px;
+  }
+  
+  .e-grid {
+    box-shadow: 0 3px 5px -1px rgba(0, 0, 0, 0.2), 
+                0 6px 10px 0 rgba(0, 0, 0, 0.14), 
+                0 1px 18px 0 rgba(0, 0, 0, 0.12);
+  }
 }
