@@ -4,6 +4,9 @@ import Toast from 'vue-toastification'
 import router from './router'
 import App from './App.vue'
 
+// Initialize localization first to prevent undefined values
+import { initializeLocalization } from '@/composables/useLocalization'
+
 // Syncfusion Styles
 import '@syncfusion/ej2-base/styles/material.css'
 import '@syncfusion/ej2-buttons/styles/material.css'
@@ -49,6 +52,9 @@ const app = createApp(App)
 // Create Pinia store
 const pinia = createPinia()
 
+// Initialize localization immediately to prevent undefined values
+const localization = initializeLocalization()
+
 // Toast configuration
 const toastOptions = {
   position: 'top-right',
@@ -68,62 +74,151 @@ const toastOptions = {
   newestOnTop: true
 }
 
-// Register Syncfusion plugins
-app.use(ButtonPlugin)
-app.use(CalendarPlugin)
-app.use(DatePickerPlugin)
-app.use(DateTimePickerPlugin)
-app.use(DropDownListPlugin)
-app.use(MultiSelectPlugin)
-app.use(ComboBoxPlugin)
-app.use(TextBoxPlugin)
-app.use(NumericTextBoxPlugin)
-app.use(TabPlugin)
-app.use(ToolbarPlugin)
-app.use(DialogPlugin)
-app.use(TooltipPlugin)
-app.use(GridPlugin)
-app.use(GanttPlugin)
-app.use(KanbanPlugin)
-app.use(RichTextEditorPlugin)
-app.use(SchedulePlugin)
-app.use(DashboardLayoutPlugin)
-app.use(SplitterPlugin)
-app.use(ToastPlugin)
-
-// Register core plugins
-app.use(pinia)
-app.use(router)
-app.use(Toast, toastOptions)
-
-// Syncfusion license registration
-// This will be set via environment variable in production
-if (import.meta.env.VITE_SYNCFUSION_LICENSE_KEY) {
-  const { registerLicense } = await import('@syncfusion/ej2-base')
-  registerLicense(import.meta.env.VITE_SYNCFUSION_LICENSE_KEY)
-}
-
-// Global error handler
+// Global error handler (setup early to catch initialization errors)
 app.config.errorHandler = (error, instance, info) => {
   console.error('Global error:', error)
   console.error('Component:', instance)
   console.error('Info:', info)
   
-  // You can send error to logging service here
-  if (import.meta.env.PROD) {
-    // Send to error tracking service in production
-    console.error('Production error occurred:', { error, info })
+  // Prevent cascading errors with safe error reporting
+  try {
+    if (import.meta.env.PROD) {
+      // Send to error tracking service in production
+      console.error('Production error occurred:', { 
+        error: error.message, 
+        info,
+        stack: error.stack?.substring(0, 500) // Limit stack trace size
+      })
+    }
+  } catch (reportingError) {
+    console.error('Failed to report error:', reportingError)
   }
 }
 
 // Global warning handler (only in development)
 if (import.meta.env.DEV) {
   app.config.warnHandler = (msg, instance, trace) => {
+    // Filter out common Syncfusion warnings that don't affect functionality
+    if (msg.includes('placeholder') || msg.includes('str.replace')) {
+      console.debug('Syncfusion warning (handled):', msg)
+      return
+    }
     console.warn('Vue warning:', msg)
     console.warn('Component:', instance)
     console.warn('Trace:', trace)
   }
 }
 
-// Mount the app
-app.mount('#app')
+// Register Syncfusion plugins with error handling
+try {
+  app.use(ButtonPlugin)
+  app.use(CalendarPlugin)
+  app.use(DatePickerPlugin)
+  app.use(DateTimePickerPlugin)
+  app.use(DropDownListPlugin)
+  app.use(MultiSelectPlugin)
+  app.use(ComboBoxPlugin)
+  app.use(TextBoxPlugin)
+  app.use(NumericTextBoxPlugin)
+  app.use(TabPlugin)
+  app.use(ToolbarPlugin)
+  app.use(DialogPlugin)
+  app.use(TooltipPlugin)
+  app.use(GridPlugin)
+  app.use(GanttPlugin)
+  app.use(KanbanPlugin)
+  app.use(RichTextEditorPlugin)
+  app.use(SchedulePlugin)
+  app.use(DashboardLayoutPlugin)
+  app.use(SplitterPlugin)
+  app.use(ToastPlugin)
+} catch (syncfusionError) {
+  console.error('Failed to register Syncfusion plugins:', syncfusionError)
+}
+
+// Register core plugins
+app.use(pinia)
+app.use(router)
+app.use(Toast, toastOptions)
+
+// Syncfusion license registration with error handling
+if (import.meta.env.VITE_SYNCFUSION_LICENSE_KEY) {
+  try {
+    const { registerLicense } = await import('@syncfusion/ej2-base')
+    registerLicense(import.meta.env.VITE_SYNCFUSION_LICENSE_KEY)
+    console.log('Syncfusion license registered successfully')
+  } catch (licenseError) {
+    console.warn('Failed to register Syncfusion license:', licenseError)
+  }
+} else {
+  console.warn('Syncfusion license key not found. Add VITE_SYNCFUSION_LICENSE_KEY to environment variables.')
+}
+
+// Provide global localization instance
+app.provide('localization', localization)
+
+// Safe component mounting with error handling
+async function mountApp() {
+  try {
+    // Wait for localization to initialize
+    await localization.initialize()
+    
+    // Mount the app
+    app.mount('#app')
+    
+    console.log('Ivanti Kanban App mounted successfully')
+  } catch (mountError) {
+    console.error('Failed to mount application:', mountError)
+    
+    // Show user-friendly error message
+    const appElement = document.getElementById('app')
+    if (appElement) {
+      appElement.innerHTML = `
+        <div style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100vh;
+          padding: 20px;
+          text-align: center;
+          font-family: Arial, sans-serif;
+        ">
+          <h1 style="color: #f44336; margin-bottom: 16px;">Application Error</h1>
+          <p style="color: #666; margin-bottom: 20px;">
+            Failed to start the application. Please refresh the page or contact support.
+          </p>
+          <button 
+            onclick="window.location.reload()"
+            style="
+              padding: 12px 24px;
+              background: #1976d2;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+              font-size: 14px;
+            "
+          >
+            Refresh Page
+          </button>
+          <details style="margin-top: 20px; max-width: 600px;">
+            <summary style="cursor: pointer; color: #666;">Technical Details</summary>
+            <pre style="
+              text-align: left;
+              background: #f5f5f5;
+              padding: 16px;
+              border-radius: 4px;
+              overflow: auto;
+              font-size: 12px;
+              margin-top: 8px;
+            ">${mountError.message}</pre>
+          </details>
+        </div>
+      `
+    }
+  }
+}
+
+// Start the application
+mountApp()
