@@ -63,11 +63,11 @@
             
             <div class="project-meta">
               <div class="meta-row">
-                <span class="meta-label">Owner:</span>
+                <span class="meta-label">{{ t('projects.owner') }}:</span>
                 <span class="meta-value">{{ project.Owner || '-' }}</span>
               </div>
               <div class="meta-row">
-                <span class="meta-label">Priority:</span>
+                <span class="meta-label">{{ t('projects.priority') }}:</span>
                 <span class="meta-value priority" :class="`priority--${(project.Priority || 'medium').toLowerCase()}`">
                   {{ project.Priority || 'Medium' }}
                 </span>
@@ -77,7 +77,7 @@
             <!-- Progress Bar -->
             <div class="progress-section">
               <div class="progress-header">
-                <span class="progress-label">Progress</span>
+                <span class="progress-label">{{ t('projects.progress') }}</span>
                 <span class="progress-percentage">{{ project.CompletionPercent || 0 }}%</span>
               </div>
               <div class="progress-bar">
@@ -99,9 +99,9 @@
           
           <div class="card-footer">
             <div class="date-range">
-              <span class="date-label">{{ formatDate(project.StartDate) }}</span>
+              <span class="date-label">{{ formatDate(project.ProjectStartDate) }}</span>
               <span class="date-separator">—</span>
-              <span class="date-label">{{ formatDate(project.EndDate) }}</span>
+              <span class="date-label">{{ formatDate(project.ProjectEndDate) }}</span>
             </div>
             
             <div class="card-actions" @click.stop>
@@ -129,7 +129,7 @@
                 :title="t('actions.delete')"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
+                  <path d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6Z"/>
                 </svg>
               </button>
             </div>
@@ -153,7 +153,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectStore } from '@/stores/projectStore'
 import { useLocalization } from '@/composables/useLocalization'
@@ -167,63 +167,33 @@ export default {
     const { t } = useLocalization()
     const { showToast } = useToast()
 
+    // Reactive state
     const isLoading = ref(false)
-    const searchQuery = ref('')
-    const statusFilter = ref('')
-    const ownerFilter = ref('')
-    const priorityFilter = ref('')
 
-    // Computed filtered projects
+    // Computed properties
     const filteredProjects = computed(() => {
-      let projects = [...projectStore.projects]
-      
-      // Apply search filter
-      if (searchQuery.value) {
-        const query = searchQuery.value.toLowerCase()
-        projects = projects.filter(project => 
-          project.ProjectName?.toLowerCase().includes(query) ||
-          project.Description?.toLowerCase().includes(query) ||
-          project.Owner?.toLowerCase().includes(query)
-        )
-      }
-
-      // Apply status filter
-      if (statusFilter.value) {
-        projects = projects.filter(project => project.Status === statusFilter.value)
-      }
-
-      // Apply owner filter
-      if (ownerFilter.value) {
-        projects = projects.filter(project => project.Owner === ownerFilter.value)
-      }
-
-      // Apply priority filter
-      if (priorityFilter.value) {
-        projects = projects.filter(project => project.Priority === priorityFilter.value)
-      }
-
-      return projects
+      return projectStore.projects || []
     })
 
+    // Methods
     const refreshData = async () => {
       isLoading.value = true
       try {
         await projectStore.fetchProjects()
-        showToast(t('actions.refreshSuccess'), 'success')
       } catch (error) {
         console.error('Failed to refresh projects:', error)
-        showToast(t('actions.refreshError'), 'error')
+        showToast(t('projects.loadError'), 'error')
       } finally {
         isLoading.value = false
       }
     }
 
     const selectProject = (project) => {
-      router.push(`/projects/${project.RecId}`)
+      router.push(`/projects/${project.RecId}/details`)
     }
 
     const createProject = () => {
-      router.push('/projects/new')
+      router.push('/projects/create')
     }
 
     const editProject = (project) => {
@@ -448,10 +418,11 @@ export default {
 }
 
 .status-chip--active { background: #e8f5e8; color: #2e7d2e; }
+.status-chip--planning { background: #fff3e0; color: #e65100; }
+.status-chip--on-hold { background: #f3e5f5; color: #7b1fa2; }
 .status-chip--completed { background: #e3f2fd; color: #1976d2; }
-.status-chip--on-hold { background: #fff3e0; color: #f57c00; }
-.status-chip--cancelled { background: #ffebee; color: #d32f2f; }
-.status-chip--unknown { background: #f5f5f5; color: #666; }
+.status-chip--cancelled { background: #ffebee; color: #c62828; }
+.status-chip--unknown { background: #f5f5f5; color: #757575; }
 
 .card-body {
   padding: 16px 20px;
@@ -464,8 +435,8 @@ export default {
 .project-description {
   margin: 0;
   font-size: 14px;
-  line-height: 1.5;
   color: var(--mdc-theme-text-secondary-on-background);
+  line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -483,7 +454,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .meta-label {
@@ -496,44 +467,44 @@ export default {
   font-weight: 500;
 }
 
-.meta-value.priority {
+.priority {
   padding: 2px 8px;
   border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: capitalize;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.priority--critical { background: #ffebee; color: #d32f2f; }
-.priority--high { background: #fff3e0; color: #f57c00; }
-.priority--medium { background: #e8f5e8; color: #2e7d2e; }
+.priority--high { background: #ffebee; color: #c62828; }
+.priority--medium { background: #fff3e0; color: #e65100; }
 .priority--low { background: #f3e5f5; color: #7b1fa2; }
+.priority--critical { background: #ffcdd2; color: #d32f2f; }
 
 .progress-section {
-  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .progress-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  font-size: 13px;
 }
 
 .progress-label {
-  font-size: 14px;
-  font-weight: 500;
   color: var(--mdc-theme-text-secondary-on-background);
+  font-weight: 500;
 }
 
 .progress-percentage {
-  font-size: 14px;
+  color: var(--mdc-theme-text-primary-on-background);
   font-weight: 600;
-  color: var(--mdc-theme-primary);
 }
 
 .progress-bar {
-  height: 8px;
+  height: 6px;
   background: rgba(0, 0, 0, 0.08);
   border-radius: 4px;
   overflow: hidden;
@@ -541,7 +512,7 @@ export default {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--mdc-theme-primary), var(--mdc-theme-primary-variant));
+  background: var(--mdc-theme-primary);
   transition: width 0.3s ease;
   border-radius: 4px;
 }
