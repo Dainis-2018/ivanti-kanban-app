@@ -1,6 +1,15 @@
 <template>
   <div class="projects-view">
-    <!-- MAIN CONTENT AREA (TopBar removed - now handled globally) -->
+    <!-- TopBar Component -->
+    <TopBar 
+      :current-view="currentView"
+      @view-changed="handleViewChange"
+      @search-changed="handleSearch"
+      @filter-changed="handleFilterChange"
+      @refresh-requested="handleRefresh"
+    />
+    
+    <!-- Main Content Area -->
     <div class="main-content">
       <KeepAlive>
         <component 
@@ -19,7 +28,8 @@ import { useProjectStore } from '@/stores/projectStore'
 import { useLocalization } from '@/composables/useLocalization'
 import { useToast } from '@/composables/useToast'
 
-// Import view components
+// Import components
+import TopBar from '@/components/common/TopBar.vue'
 import ProjectListView from './projects/ProjectListView.vue'
 import ProjectCardView from './projects/ProjectCardView.vue'
 import ProjectRoadmapView from './projects/ProjectRoadmapView.vue'
@@ -27,6 +37,7 @@ import ProjectRoadmapView from './projects/ProjectRoadmapView.vue'
 export default {
   name: 'ProjectsView',
   components: {
+    TopBar,
     ProjectListView,
     ProjectCardView,
     ProjectRoadmapView
@@ -67,13 +78,11 @@ export default {
       return view ? view.component : 'ProjectListView'
     })
 
-    // Filter options
+    // Available filter options
     const availableStatuses = computed(() => {
       const statuses = new Set()
       projectStore.projects.forEach(project => {
-        if (project.Status) {
-          statuses.add(project.Status)
-        }
+        if (project.Status) statuses.add(project.Status)
       })
       return Array.from(statuses).sort()
     })
@@ -81,25 +90,22 @@ export default {
     const availableOwners = computed(() => {
       const owners = new Set()
       projectStore.projects.forEach(project => {
-        if (project.Owner) {
-          owners.add(project.Owner)
-        }
+        if (project.Owner) owners.add(project.Owner)
       })
       return Array.from(owners).sort()
     })
 
-    // Filtered projects
+    // Filtered projects based on search and filters
     const filteredProjects = computed(() => {
-      let projects = projectStore.projects
+      let projects = [...projectStore.projects]
 
       // Apply search filter
-      if (searchQuery.value.trim()) {
-        const query = searchQuery.value.toLowerCase().trim()
-        projects = projects.filter(project =>
-          (project.ProjectName && project.ProjectName.toLowerCase().includes(query)) ||
-          (project.Summary && project.Summary.toLowerCase().includes(query)) ||
-          (project.ProjectNumber && project.ProjectNumber.toLowerCase().includes(query)) ||
-          (project.Owner && project.Owner.toLowerCase().includes(query))
+      if (searchQuery.value) {
+        const query = searchQuery.value.toLowerCase()
+        projects = projects.filter(project => 
+          project.ProjectName?.toLowerCase().includes(query) ||
+          project.Description?.toLowerCase().includes(query) ||
+          project.Owner?.toLowerCase().includes(query)
         )
       }
 
@@ -121,114 +127,83 @@ export default {
       return projects
     })
 
-    // Check if filters are active
+    // Check if there are active filters
     const hasActiveFilters = computed(() => {
-      return searchQuery.value.trim() || statusFilter.value || ownerFilter.value || priorityFilter.value
+      return statusFilter.value || ownerFilter.value || priorityFilter.value
     })
 
-    // Methods
-    const switchView = (viewName) => {
-      if (currentView.value !== viewName) {
-        currentView.value = viewName
-        
-        // Update URL without triggering navigation
-        router.replace({ 
-          path: route.path, 
-          query: { ...route.query, view: viewName } 
-        })
-        
-        showToast(t('views.switched', { view: t(`views.${viewName}`) }), 'info')
-      }
+    // Event handlers for TopBar
+    const handleViewChange = (view) => {
+      currentView.value = view
+      console.log('View changed to:', view)
     }
 
     const handleSearch = (query) => {
       searchQuery.value = query
+      console.log('Search query:', query)
     }
 
     const handleFilterChange = (filters) => {
       statusFilter.value = filters.status || ''
       ownerFilter.value = filters.owner || ''
       priorityFilter.value = filters.priority || ''
+      console.log('Filters updated:', filters)
+    }
+
+    const handleRefresh = async () => {
+      try {
+        await projectStore.fetchProjects()
+        showToast('Data refreshed successfully', 'success')
+      } catch (error) {
+        console.error('Failed to refresh data:', error)
+        showToast('Failed to refresh data', 'error')
+      }
     }
 
     const clearFilters = () => {
-      searchQuery.value = ''
       statusFilter.value = ''
       ownerFilter.value = ''
       priorityFilter.value = ''
-      showToast(t('filters.cleared'), 'info')
-    }
-
-    const loadInitialData = async () => {
-      try {
-        await projectStore.fetchProjects()
-      } catch (error) {
-        console.error('Failed to load initial data:', error)
-        showToast(t('app.loadError'), 'error')
-      }
     }
 
     // Provide data to child components
     provide('filteredProjects', filteredProjects)
+    provide('currentView', currentView)
+    provide('searchQuery', searchQuery)
+    provide('statusFilter', statusFilter)
+    provide('ownerFilter', ownerFilter)
+    provide('priorityFilter', priorityFilter)
     provide('availableStatuses', availableStatuses)
     provide('availableOwners', availableOwners)
     provide('hasActiveFilters', hasActiveFilters)
 
-    // Provide methods to child components
-    provide('switchView', switchView)
-    provide('handleSearch', handleSearch)
-    provide('handleFilterChange', handleFilterChange)
-    provide('clearFilters', clearFilters)
+    // Exposed methods for child components
+    const exposedMethods = {
+      switchView: handleViewChange,
+      handleSearch,
+      handleFilterChange,
+      clearFilters,
+      refreshData: handleRefresh
+    }
 
-    // Watchers
+    provide('projectViewMethods', exposedMethods)
+
+    // Load initial data
+    onMounted(async () => {
+      if (projectStore.projects.length === 0) {
+        await handleRefresh()
+      }
+    })
+
+    // Watch route changes to set initial view
     watch(() => route.query.view, (newView) => {
       if (newView && availableViews.value.some(v => v.name === newView)) {
         currentView.value = newView
       }
     }, { immediate: true })
 
-    // Listen to TopBar events (these will come from App.vue)
-    const handleTopBarSearch = (query) => {
-      handleSearch(query)
-    }
-
-    const handleTopBarViewChange = (view) => {
-      switchView(view)
-    }
-
-    const handleTopBarFilterChange = (filters) => {
-      handleFilterChange(filters)
-    }
-
-    // Expose methods for parent component (App.vue) to call
-    const exposedMethods = {
-      handleSearch: handleTopBarSearch,
-      handleViewChange: handleTopBarViewChange,
-      handleFilterChange: handleTopBarFilterChange,
-      getCurrentView: () => currentView.value,
-      getActiveFiltersCount: () => {
-        let count = 0
-        if (searchQuery.value.trim()) count++
-        if (statusFilter.value) count++
-        if (ownerFilter.value) count++
-        if (priorityFilter.value) count++
-        return count
-      }
-    }
-
-    // Lifecycle
-    onMounted(async () => {
-      // Set initial view from route query
-      if (route.query.view && availableViews.value.some(v => v.name === route.query.view)) {
-        currentView.value = route.query.view
-      }
-
-      // Load initial data
-      await loadInitialData()
-    })
-
     return {
-      // Reactive state
+      // State
       currentView,
       searchQuery,
       statusFilter,
@@ -244,12 +219,13 @@ export default {
       hasActiveFilters,
       
       // Methods
-      switchView,
+      handleViewChange,
       handleSearch,
       handleFilterChange,
+      handleRefresh,
       clearFilters,
       
-      // Exposed methods for parent
+      // Exposed methods for child components
       ...exposedMethods,
       
       // Composables
@@ -261,10 +237,10 @@ export default {
 
 <style scoped>
 .projects-view {
-  height: 100%;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #f5f5f5;
+  background: var(--mdc-theme-background);
 }
 
 .main-content {
@@ -272,10 +248,7 @@ export default {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding: 0; /* Remove padding since TopBar handles spacing */
 }
-
-/* Remove all duplicate TopBar styles since they're now in TopBar.vue */
 
 /* View transition animations */
 .view-transition-enter-active,

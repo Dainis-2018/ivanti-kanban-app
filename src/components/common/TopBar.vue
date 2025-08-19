@@ -1,77 +1,86 @@
-<!-- src/components/common/TopBar.vue - Unified Application Top Bar -->
+<!-- src/components/common/TopBar.vue - Fixed TopBar with Working Navigation -->
 <template>
   <header class="top-bar">
     <div class="top-bar-content">
       <!-- Logo and Title -->
       <div class="logo-section">
-        <h1 class="app-title">{{ safeTitle }}</h1>
+        <h1 class="app-title">Ivanti Kanban</h1>
       </div>
 
       <!-- Search Section -->
       <div class="search-section">
-        <ejs-textbox
-          :placeholder="safePlaceholder"
-          :value="searchQuery"
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search projects, tasks, or milestones..."
+          v-model="searchQuery"
           @input="handleSearch"
-          cssClass="search-input"
-          :showClearButton="true"
-          :floatLabelType="'Never'"
         />
       </div>
 
       <!-- View Switcher (only show on projects page) -->
       <div v-if="showViewSwitcher" class="view-section">
         <div class="view-buttons">
-          <ejs-button
-            :content="safeListText"
-            iconCss="e-icons e-list-unordered"
-            :cssClass="currentView === 'list' ? 'view-button active' : 'view-button'"
+          <button
+            :class="['view-button', { active: currentView === 'list' }]"
             @click="switchView('list')"
-          />
-          <ejs-button
-            :content="safeCardText"
-            iconCss="e-icons e-card"
-            :cssClass="currentView === 'card' ? 'view-button active' : 'view-button'"
+            title="List View"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3,5H21V7H3V5M3,13H21V15H3V13M3,21H21V23H3V21Z"/>
+            </svg>
+            <span class="button-text">List</span>
+          </button>
+          <button
+            :class="['view-button', { active: currentView === 'card' }]"
             @click="switchView('card')"
-          />
-          <ejs-button
-            :content="safeRoadmapText"
-            iconCss="e-icons e-timeline"
-            :cssClass="currentView === 'roadmap' ? 'view-button active' : 'view-button'"
+            title="Card View"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M5,7H19V5H5V7M5,19V9H11V19H5M19,19H13V9H19V19Z"/>
+            </svg>
+            <span class="button-text">Cards</span>
+          </button>
+          <button
+            :class="['view-button', { active: currentView === 'roadmap' }]"
             @click="switchView('roadmap')"
-          />
+            title="Roadmap View"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M15,4V6H18V18H16V20H19A1,1 0 0,0 20,19V5A1,1 0 0,0 19,4H15M12,2A1,1 0 0,0 11,3V7A1,1 0 0,0 12,8H13V16H11V18H14A1,1 0 0,0 15,17V7H12V3M4,6A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H7V20H5A3,3 0 0,1 2,17V7A3,3 0 0,1 5,4H7V6H4M9,8V16H7V8H9M13,4V6H15V4H13Z"/>
+            </svg>
+            <span class="button-text">Roadmap</span>
+          </button>
         </div>
       </div>
 
       <!-- Filter Section -->
       <div class="filter-section">
-        <ejs-button
-          :content="safeFiltersText"
-          iconCss="e-icons e-filter"
-          cssClass="filter-button"
+        <button
+          class="filter-button"
           @click="toggleFilters"
-        />
+          title="Toggle Filters"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M14,12V19.88C14.04,20.18 13.94,20.5 13.71,20.71C13.32,21.1 12.69,21.1 12.3,20.71L10.29,18.7C10.06,18.47 9.96,18.16 10,17.87V12H9.97L4.21,4.62C3.87,4.19 3.95,3.56 4.38,3.22C4.57,3.08 4.78,3 5,3V3H19V3C19.22,3 19.43,3.08 19.62,3.22C20.05,3.56 20.13,4.19 19.79,4.62L14.03,12H14Z"/>
+          </svg>
+          <span class="button-text">Filters</span>
+        </button>
         <span v-if="activeFiltersCount > 0" class="filter-badge">{{ activeFiltersCount }}</span>
       </div>
 
       <!-- Actions Section -->
       <div class="actions-section">
-        <!-- Language Selector -->
-        <ejs-dropdownlist
-          :dataSource="languageItems"
-          :fields="{ text: 'text', value: 'id' }"
-          :value="currentLanguage"
-          cssClass="language-selector"
-          iconCss="e-icons e-world"
-          :placeholder="safeLangPlaceholder"
-          @change="handleLanguageChange"
-        />
-        <ejs-button
-          iconCss="e-icons e-refresh"
-          cssClass="refresh-button"
+        <button
+          class="refresh-button"
           @click="handleRefresh"
           :disabled="isLoading"
-        />
+          title="Refresh Data"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
+          </svg>
+        </button>
       </div>
     </div>
 
@@ -80,49 +89,49 @@
       <div class="filter-content">
         <!-- Status Filter -->
         <div class="filter-group">
-          <label class="filter-label">{{ t('filters.status') }}</label>
+          <label class="filter-label">Status</label>
           <select v-model="statusFilter" class="filter-select" @change="handleFilterChange">
-            <option value="">{{ t('filters.allStatuses') }}</option>
-            <option v-for="status in availableStatuses" :key="status" :value="status">
-              {{ getStatusLabel(status) }}
-            </option>
+            <option value="">All Statuses</option>
+            <option value="Planning">Planning</option>
+            <option value="Active">Active</option>
+            <option value="On Hold">On Hold</option>
+            <option value="Completed">Completed</option>
+            <option value="Cancelled">Cancelled</option>
           </select>
         </div>
 
         <!-- Owner Filter -->
         <div class="filter-group">
-          <label class="filter-label">{{ t('filters.owner') }}</label>
+          <label class="filter-label">Owner</label>
           <select v-model="ownerFilter" class="filter-select" @change="handleFilterChange">
-            <option value="">{{ t('filters.allOwners') }}</option>
-            <option v-for="owner in availableOwners" :key="owner" :value="owner">
-              {{ owner }}
-            </option>
+            <option value="">All Owners</option>
+            <option value="John Doe">John Doe</option>
+            <option value="Jane Smith">Jane Smith</option>
+            <option value="Mike Johnson">Mike Johnson</option>
+            <option value="Sarah Wilson">Sarah Wilson</option>
           </select>
         </div>
 
         <!-- Priority Filter -->
         <div class="filter-group">
-          <label class="filter-label">{{ t('filters.priority') }}</label>
+          <label class="filter-label">Priority</label>
           <select v-model="priorityFilter" class="filter-select" @change="handleFilterChange">
-            <option value="">{{ t('filters.allPriorities') }}</option>
-            <option value="Critical">{{ t('projects.priorityValues.critical') }}</option>
-            <option value="High">{{ t('projects.priorityValues.high') }}</option>
-            <option value="Medium">{{ t('projects.priorityValues.medium') }}</option>
-            <option value="Low">{{ t('projects.priorityValues.low') }}</option>
+            <option value="">All Priorities</option>
+            <option value="Critical">Critical</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
           </select>
         </div>
 
-        <!-- Clear Filters -->
+        <!-- Clear Filters Button -->
         <div class="filter-actions">
           <button 
-            v-if="hasActiveFilters"
+            v-if="hasActiveFilters" 
             class="clear-filters-btn"
             @click="clearFilters"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
-            </svg>
-            {{ t('filters.clear') }}
+            Clear Filters
           </button>
         </div>
       </div>
@@ -131,10 +140,8 @@
 </template>
 
 <script>
-import { ref, computed, watch, inject } from 'vue'
-import { useRoute } from 'vue-router'
-import { useProjectStore } from '@/stores/projectStore'
-import { useLocalization } from '@/composables/useLocalization'
+import { ref, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 export default {
   name: 'TopBar',
@@ -142,99 +149,67 @@ export default {
     currentView: {
       type: String,
       default: 'list'
-    },
-    activeFiltersCount: {
-      type: Number,
-      default: 0
-    },
-    isLoading: {
-      type: Boolean,
-      default: false
     }
   },
-  emits: ['search', 'view-change', 'filter-change', 'toggle-filters', 'refresh', 'language-change'],
+  emits: ['search-changed', 'filter-changed', 'refresh-requested'],
   setup(props, { emit }) {
     const route = useRoute()
-    const projectStore = useProjectStore()
-    const { t, getSafe, setLocale, getLocale } = useLocalization()
+    const router = useRouter()
     
-    const searchQuery = ref('')
+    // Reactive state
+    const isLoading = ref(false)
     const showFilters = ref(false)
+    const searchQuery = ref('')
     const statusFilter = ref('')
     const ownerFilter = ref('')
     const priorityFilter = ref('')
 
-    // Safe text getters to prevent undefined values
-    const safeTitle = computed(() => getSafe('app.title', 'Ivanti Kanban'))
-    const safePlaceholder = computed(() => getSafe('app.search', 'Search...'))
-    const safeFiltersText = computed(() => getSafe('app.filters', 'Filters'))
-    const safeListText = computed(() => getSafe('views.list', 'List'))
-    const safeCardText = computed(() => getSafe('views.card', 'Cards'))
-    const safeRoadmapText = computed(() => getSafe('views.roadmap', 'Roadmap'))
-    const safeLangPlaceholder = computed(() => getSafe('language.select', 'Language'))
+    // Get current view from route
+    const currentView = computed(() => {
+      if (route.path.includes('/projects/list')) return 'list'
+      if (route.path.includes('/projects/cards')) return 'card'
+      if (route.path.includes('/projects/roadmap')) return 'roadmap'
+      return 'list'
+    })
 
     // Show view switcher only on projects pages
     const showViewSwitcher = computed(() => {
-      return route.path.startsWith('/projects') && 
-             !route.path.includes('/new') && 
-             !route.path.includes('/edit') &&
-             !route.params.id // Hide on detail pages
+      return route.path.includes('/projects') && !route.params.id
     })
 
-    // Language options
-    const languageItems = ref([
-      { id: 'en', text: 'English' },
-      { id: 'de', text: 'Deutsch' },
-      { id: 'fr', text: 'Français' }
-    ])
-
-    const currentLanguage = ref(getLocale())
-
-    // Get filter options from project store
-    const availableStatuses = computed(() => {
-      const statuses = new Set()
-      projectStore.projects.forEach(project => {
-        if (project.Status) {
-          statuses.add(project.Status)
-        }
-      })
-      return Array.from(statuses).sort()
-    })
-
-    const availableOwners = computed(() => {
-      const owners = new Set()
-      projectStore.projects.forEach(project => {
-        if (project.Owner) {
-          owners.add(project.Owner)
-        }
-      })
-      return Array.from(owners).sort()
-    })
-
+    // Active filters count
     const hasActiveFilters = computed(() => {
-      return searchQuery.value.trim() || statusFilter.value || ownerFilter.value || priorityFilter.value
+      return statusFilter.value || ownerFilter.value || priorityFilter.value
     })
 
-    // Event handlers
-    const handleSearch = (args) => {
-      // Handle both event objects and direct values
-      const value = args?.value !== undefined ? args.value : args
-      searchQuery.value = String(value || '')
-      
-      // Debounced search
-      clearTimeout(handleSearch.timeout)
-      handleSearch.timeout = setTimeout(() => {
-        emit('search', searchQuery.value)
-      }, 300)
+    const activeFiltersCount = computed(() => {
+      let count = 0
+      if (statusFilter.value) count++
+      if (ownerFilter.value) count++
+      if (priorityFilter.value) count++
+      return count
+    })
+
+    // Methods
+    const handleSearch = () => {
+      emit('search-changed', searchQuery.value)
     }
 
     const switchView = (view) => {
-      emit('view-change', view)
+      // Navigate directly to the view route
+      const viewRoutes = {
+        'list': '/projects/list',
+        'card': '/projects/cards',
+        'roadmap': '/projects/roadmap'
+      }
+      
+      if (viewRoutes[view]) {
+        router.push(viewRoutes[view])
+      }
     }
 
     const toggleFilters = () => {
       showFilters.value = !showFilters.value
-      emit('toggle-filters', showFilters.value)
     }
 
     const handleFilterChange = () => {
@@ -243,81 +218,58 @@ export default {
         owner: ownerFilter.value,
         priority: priorityFilter.value
       }
-      emit('filter-change', filters)
+      emit('filter-changed', filters)
     }
 
     const clearFilters = () => {
-      searchQuery.value = ''
       statusFilter.value = ''
       ownerFilter.value = ''
       priorityFilter.value = ''
-      emit('search', '')
-      emit('filter-change', {})
+      handleFilterChange()
     }
 
     const handleRefresh = () => {
-      emit('refresh')
+      isLoading.value = true
+      emit('refresh-requested')
+      // Reset loading state after a delay
+      setTimeout(() => {
+        isLoading.value = false
+      }, 1000)
     }
-
-    const handleLanguageChange = async (args) => {
-      const newLang = args.value
-      currentLanguage.value = newLang
-      await setLocale(newLang)
-      emit('language-change', newLang)
-    }
-
-    const getStatusLabel = (status) => {
-      const statusKey = status.toLowerCase().replace(' ', '')
-      return getSafe(`projects.statusValues.${statusKey}`, status)
-    }
-
-    // Watch for external filter changes
-    watch(() => props.activeFiltersCount, (newCount) => {
-      if (newCount === 0) {
-        statusFilter.value = ''
-        ownerFilter.value = ''
-        priorityFilter.value = ''
-      }
-    })
 
     return {
-      searchQuery,
+      // State
+      isLoading,
       showFilters,
+      searchQuery,
       statusFilter,
       ownerFilter,
       priorityFilter,
-      languageItems,
-      currentLanguage,
-      safeTitle,
-      safePlaceholder,
-      safeFiltersText,
-      safeListText,
-      safeCardText,
-      safeRoadmapText,
-      safeLangPlaceholder,
+      
+      // Computed
+      currentView,
       showViewSwitcher,
-      availableStatuses,
-      availableOwners,
       hasActiveFilters,
+      activeFiltersCount,
+      
+      // Methods
       handleSearch,
       switchView,
       toggleFilters,
       handleFilterChange,
       clearFilters,
-      handleRefresh,
-      handleLanguageChange,
-      getStatusLabel,
-      t
+      handleRefresh
     }
   }
 }
 </script>
 
 <style scoped>
+/* Uses global CSS variables and styles from main.css */
 .top-bar {
-  background: white;
+  background: var(--mdc-theme-surface);
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--mdc-elevation-01);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -340,7 +292,8 @@ export default {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 500;
-  color: var(--primary-color, #1976d2);
+  color: var(--mdc-theme-primary);
+  cursor: pointer;
 }
 
 .search-section {
@@ -348,35 +301,29 @@ export default {
   max-width: 400px;
 }
 
-.search-section :deep(.e-textbox) {
+.search-input {
   width: 100%;
-}
-
-.search-section :deep(.e-input-group) {
-  border-radius: 24px;
+  padding: 8px 16px;
   border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 24px;
   background: rgba(0, 0, 0, 0.04);
+  font-size: 14px;
+  outline: none;
   transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.search-section :deep(.e-input-group:hover) {
+.search-input:hover {
   background: rgba(0, 0, 0, 0.08);
   border-color: rgba(0, 0, 0, 0.24);
 }
 
-.search-section :deep(.e-input-group.e-input-focus) {
-  background: white;
-  border-color: var(--primary-color, #1976d2);
+.search-input:focus {
+  background: var(--mdc-theme-surface);
+  border-color: var(--mdc-theme-primary);
   box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
 }
 
-.search-section :deep(.e-input) {
-  padding: 8px 16px;
-  font-size: 14px;
-  border: none;
-  background: transparent;
-}
-
+/* View Switcher */
 .view-section {
   flex-shrink: 0;
 }
@@ -384,81 +331,134 @@ export default {
 .view-buttons {
   display: flex;
   background: rgba(0, 0, 0, 0.04);
-  border-radius: 6px;
-  padding: 2px;
+  border-radius: 8px;
+  padding: 4px;
   gap: 2px;
 }
 
-.view-buttons :deep(.e-btn) {
-  border-radius: 4px;
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 500;
+.view-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
   border: none;
   background: transparent;
-  color: rgba(0, 0, 0, 0.6);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--mdc-theme-text-secondary-on-background);
   transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  min-width: 70px;
+  min-width: 80px;
+  justify-content: center;
 }
 
-.view-buttons :deep(.e-btn:hover) {
-  background: rgba(0, 0, 0, 0.08);
-  color: rgba(0, 0, 0, 0.87);
+.view-button:hover:not(.active) {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--mdc-theme-text-primary-on-background);
 }
 
-.view-buttons :deep(.e-btn.active) {
-  background: white;
-  color: var(--primary-color, #1976d2);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+.view-button.active {
+  background: var(--mdc-theme-primary);
+  color: var(--mdc-theme-on-primary);
+  box-shadow: var(--mdc-elevation-01);
 }
 
+.view-button svg {
+  flex-shrink: 0;
+}
+
+.button-text {
+  font-weight: 500;
+}
+
+/* Filter Section */
 .filter-section {
   position: relative;
   flex-shrink: 0;
 }
 
-.filter-section :deep(.e-btn) {
-  border-radius: 20px;
-  padding: 6px 16px;
+.filter-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: var(--mdc-theme-surface);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--mdc-theme-text-primary-on-background);
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.filter-button:hover {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.24);
 }
 
 .filter-badge {
   position: absolute;
-  top: -4px;
-  right: -4px;
-  background: #f44336;
-  color: white;
-  font-size: 10px;
+  top: -8px;
+  right: -8px;
+  background: var(--mdc-theme-primary);
+  color: var(--mdc-theme-on-primary);
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
   font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 10px;
-  min-width: 16px;
-  text-align: center;
 }
 
+/* Actions Section */
 .actions-section {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   flex-shrink: 0;
 }
 
-.language-selector {
-  min-width: 100px;
+.refresh-button {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: var(--mdc-theme-surface);
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--mdc-theme-text-secondary-on-background);
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+.refresh-button:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--mdc-theme-primary);
+}
+
+.refresh-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Filters Panel */
 .filters-panel {
+  background: var(--mdc-theme-surface);
   border-top: 1px solid rgba(0, 0, 0, 0.08);
-  background: #f8f9fa;
   padding: 16px 24px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .filter-content {
   display: flex;
-  align-items: end;
-  gap: 16px;
-  max-width: 1400px;
-  margin: 0 auto;
+  align-items: center;
+  gap: 24px;
   flex-wrap: wrap;
 }
 
@@ -472,7 +472,7 @@ export default {
 .filter-label {
   font-size: 12px;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--mdc-theme-text-secondary-on-background);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -481,73 +481,91 @@ export default {
   padding: 8px 12px;
   border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 4px;
-  background: white;
+  background: var(--mdc-theme-surface);
   font-size: 14px;
+  color: var(--mdc-theme-text-primary-on-background);
   cursor: pointer;
 }
 
 .filter-select:focus {
   outline: none;
-  border-color: var(--primary-color, #1976d2);
+  border-color: var(--mdc-theme-primary);
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
 }
 
 .filter-actions {
-  display: flex;
-  align-items: center;
+  margin-left: auto;
 }
 
 .clear-filters-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  background: rgba(244, 67, 54, 0.08);
-  color: #f44336;
-  border: none;
+  padding: 6px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: var(--mdc-theme-surface);
   border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 14px;
+  color: var(--mdc-theme-text-secondary-on-background);
   transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .clear-filters-btn:hover {
-  background: rgba(244, 67, 54, 0.16);
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--mdc-theme-text-primary-on-background);
 }
 
 /* Responsive Design */
-@media (max-width: 1200px) {
+@media (max-width: 1024px) {
   .top-bar-content {
     flex-wrap: wrap;
     gap: 12px;
   }
 
   .search-section {
-    order: 3;
-    flex: 1 1 100%;
+    order: -1;
+    flex-basis: 100%;
     max-width: none;
+  }
+
+  .view-section {
+    flex: 1;
+  }
+
+  .view-buttons {
+    justify-content: center;
   }
 }
 
 @media (max-width: 768px) {
   .top-bar-content {
-    padding: 12px 16px;
+    padding: 8px 16px;
   }
 
-  .view-buttons :deep(.e-btn .e-btn-content) {
+  .view-button .button-text {
     display: none;
   }
 
-  .view-buttons :deep(.e-btn) {
-    width: 36px;
-    min-width: 36px;
-    padding: 6px;
+  .view-button {
+    min-width: 40px;
+    padding: 8px;
+  }
+
+  .filter-button .button-text {
+    display: none;
+  }
+
+  .filter-button {
+    min-width: 40px;
+    padding: 8px;
+  }
+
+  .actions-section {
+    gap: 8px;
   }
 
   .filter-content {
     flex-direction: column;
     align-items: stretch;
-    gap: 12px;
+    gap: 16px;
   }
 
   .filter-group {
@@ -556,34 +574,18 @@ export default {
 }
 
 @media (max-width: 480px) {
-  .app-title {
+  .logo-section .app-title {
     font-size: 1.25rem;
   }
 
-  .top-bar-content {
-    gap: 8px;
-    padding: 8px 12px;
+  .view-buttons {
+    padding: 2px;
+    gap: 1px;
   }
 
-  .actions-section {
-    flex-direction: column;
-    gap: 4px;
-  }
-}
-
-/* Animation for filters panel */
-.filters-panel {
-  animation: slideDown 0.3s ease-out;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  .view-button {
+    padding: 6px;
+    min-width: 36px;
   }
 }
 </style>

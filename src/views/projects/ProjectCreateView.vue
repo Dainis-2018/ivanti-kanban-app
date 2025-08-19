@@ -1,143 +1,166 @@
 <template>
-  <div class="project-create-view">
-    <div class="create-header">
-      <h1 class="mdc-typography--headline4">{{ t('projects.create') }}</h1>
-      <p class="mdc-typography--body1">{{ t('projects.createDescription') }}</p>
+  <div class="project-card-view">
+    <!-- PROJECT CARD VIEW -->
+    <div class="view-toolbar">
+      <div class="toolbar-left">
+        <h2 class="view-title">{{ t('projects.title') }}</h2>
+        <span class="project-count">
+          {{ filteredProjects.length }} {{ t('projects.title').toLowerCase() }}
+        </span>
+      </div>
+      <div class="toolbar-actions">
+        <button 
+          class="btn btn--outlined refresh-btn" 
+          @click="refreshData" 
+          :disabled="isLoading"
+          :title="t('actions.refresh')"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
+          </svg>
+          <span>{{ t('actions.refresh') }}</span>
+        </button>
+        <button 
+          class="btn btn--raised create-btn" 
+          @click="createProject" 
+          :title="t('actions.createProject')"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+          </svg>
+          <span>{{ t('projects.create') }}</span>
+        </button>
+      </div>
     </div>
 
-    <div class="create-form-container">
-      <form @submit.prevent="handleSubmit" class="project-form">
-        <div class="form-section">
-          <h2 class="mdc-typography--headline6">{{ t('projects.basicInfo') }}</h2>
+    <div class="view-content">
+      <!-- Loading State -->
+      <div v-if="isLoading" class="loading-state">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">{{ t('app.loading') }}</p>
+      </div>
+
+      <!-- Projects Cards -->
+      <div v-else-if="filteredProjects.length > 0" class="projects-cards">
+        <div
+          v-for="project in filteredProjects"
+          :key="project.RecId"
+          class="project-card"
+          @click="selectProject(project)"
+        >
+          <div class="card-header">
+            <div class="card-title-section">
+              <h3 class="card-title">{{ project.ProjectName }}</h3>
+              <span class="project-number">#{{ project.ProjectNumber }}</span>
+            </div>
+            <span class="status-chip" :class="`status-chip--${getStatusClass(project.Status)}`">
+              {{ project.Status }}
+            </span>
+          </div>
           
-          <div class="form-field">
-            <label class="form-label">{{ t('projects.name') }} *</label>
-            <input
-              v-model="form.projectName"
-              type="text"
-              class="form-input"
-              :placeholder="t('projects.namePlaceholder')"
-              required
-            >
-          </div>
+          <div class="card-body">
+            <p v-if="project.Summary" class="project-description">{{ project.Summary }}</p>
+            
+            <div class="project-meta">
+              <div class="meta-row">
+                <span class="meta-label">{{ t('projects.owner') }}:</span>
+                <span class="meta-value">{{ project.Owner || '-' }}</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">{{ t('projects.priority') }}:</span>
+                <span class="meta-value priority" :class="`priority--${(project.Priority || 'medium').toLowerCase()}`">
+                  {{ project.Priority || 'Medium' }}
+                </span>
+              </div>
+            </div>
 
-          <div class="form-field">
-            <label class="form-label">{{ t('projects.projectNumber') }}</label>
-            <input
-              v-model="form.projectNumber"
-              type="text"
-              class="form-input"
-              :placeholder="t('projects.projectNumberPlaceholder')"
-            >
-          </div>
+            <!-- Progress Bar -->
+            <div class="progress-section">
+              <div class="progress-header">
+                <span class="progress-label">{{ t('projects.progress') }}</span>
+                <span class="progress-percentage">{{ project.CompletionPercent || 0 }}%</span>
+              </div>
+              <div class="progress-bar">
+                <div 
+                  class="progress-fill" 
+                  :style="{ width: `${project.CompletionPercent || 0}%` }"
+                ></div>
+              </div>
+            </div>
 
-          <div class="form-field">
-            <label class="form-label">{{ t('projects.description') }}</label>
-            <textarea
-              v-model="form.summary"
-              class="form-textarea"
-              rows="4"
-              :placeholder="t('projects.descriptionPlaceholder')"
-            ></textarea>
+            <!-- Milestone Count -->
+            <div v-if="project.milestones" class="milestone-info">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
+              </svg>
+              <span>{{ project.milestones.length }} {{ t('milestones.title').toLowerCase() }}</span>
+            </div>
           </div>
-        </div>
-
-        <div class="form-section">
-          <h2 class="mdc-typography--headline6">{{ t('projects.timeline') }}</h2>
           
-          <div class="form-row">
-            <div class="form-field">
-              <label class="form-label">{{ t('projects.startDate') }} *</label>
-              <input
-                v-model="form.startDate"
-                type="date"
-                class="form-input"
-                required
-              >
+          <div class="card-footer">
+            <div class="date-range">
+              <span class="date-label">{{ formatDate(project.StartDate) }}</span>
+              <span class="date-separator">—</span>
+              <span class="date-label">{{ formatDate(project.EndDate) }}</span>
             </div>
-
-            <div class="form-field">
-              <label class="form-label">{{ t('projects.endDate') }} *</label>
-              <input
-                v-model="form.endDate"
-                type="date"
-                class="form-input"
-                required
-                :min="form.startDate"
+            
+            <div class="card-actions" @click.stop>
+              <button 
+                class="btn btn--icon action-btn" 
+                @click="viewDetails(project)"
+                :title="t('actions.viewDetails')"
               >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z"/>
+                </svg>
+              </button>
+              <button 
+                class="btn btn--icon action-btn" 
+                @click="editProject(project)"
+                :title="t('actions.edit')"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"/>
+                </svg>
+              </button>
+              <button 
+                class="btn btn--icon action-btn" 
+                @click="deleteProject(project)"
+                :title="t('actions.delete')"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
+                </svg>
+              </button>
             </div>
           </div>
         </div>
+      </div>
 
-        <div class="form-section">
-          <h2 class="mdc-typography--headline6">{{ t('projects.management') }}</h2>
-          
-          <div class="form-row">
-            <div class="form-field">
-              <label class="form-label">{{ t('projects.owner') }}</label>
-              <input
-                v-model="form.owner"
-                type="text"
-                class="form-input"
-                :placeholder="t('projects.ownerPlaceholder')"
-              >
-            </div>
-
-            <div class="form-field">
-              <label class="form-label">{{ t('projects.priority') }}</label>
-              <select v-model="form.priority" class="form-select">
-                <option value="">{{ t('filters.selectPriority') }}</option>
-                <option value="Critical">{{ t('projects.priorityValues.critical') }}</option>
-                <option value="High">{{ t('projects.priorityValues.high') }}</option>
-                <option value="Medium">{{ t('projects.priorityValues.medium') }}</option>
-                <option value="Low">{{ t('projects.priorityValues.low') }}</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-field">
-            <label class="form-label">{{ t('projects.status') }}</label>
-            <select v-model="form.status" class="form-select">
-              <option value="">{{ t('filters.selectStatus') }}</option>
-              <option value="Planning">{{ t('projects.statusValues.planning') }}</option>
-              <option value="Active">{{ t('projects.statusValues.active') }}</option>
-              <option value="On Hold">{{ t('projects.statusValues.onhold') }}</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button
-            type="button"
-            class="mdc-button mdc-button--outlined"
-            @click="handleCancel"
-            :disabled="isLoading"
-          >
-            {{ t('actions.cancel') }}
-          </button>
-          <button
-            type="submit"
-            class="mdc-button mdc-button--raised"
-            :disabled="isLoading || !isFormValid"
-          >
-            <span v-if="isLoading">{{ t('app.loading') }}</span>
-            <span v-else>{{ t('projects.create') }}</span>
-          </button>
-        </div>
-      </form>
+      <!-- Empty State -->
+      <div v-else class="empty-state">
+        <svg class="empty-icon" width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+        </svg>
+        <h3 class="empty-title">{{ t('projects.noProjects') }}</h3>
+        <p class="empty-description">{{ t('projects.createFirstProject') }}</p>
+        <button class="btn btn--raised" @click="createProject">
+          {{ t('projects.create') }}
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectStore } from '@/stores/projectStore'
 import { useLocalization } from '@/composables/useLocalization'
 import { useToast } from '@/composables/useToast'
 
 export default {
-  name: 'ProjectCreateView',
+  name: 'ProjectCardView',
   setup() {
     const router = useRouter()
     const projectStore = useProjectStore()
@@ -145,64 +168,82 @@ export default {
     const { showToast } = useToast()
 
     const isLoading = ref(false)
-    
-    const form = ref({
-      projectName: '',
-      projectNumber: '',
-      summary: '',
-      startDate: '',
-      endDate: '',
-      owner: '',
-      priority: 'Medium',
-      status: 'Planning'
-    })
 
-    const isFormValid = computed(() => {
-      return form.value.projectName.trim() && 
-             form.value.startDate && 
-             form.value.endDate
-    })
+    // Access filteredProjects from parent component context
+    const filteredProjects = inject('filteredProjects', computed(() => projectStore.projects))
 
-    const handleSubmit = async () => {
-      if (!isFormValid.value) return
-
+    const refreshData = async () => {
       isLoading.value = true
-      
       try {
-        const projectData = {
-          ProjectName: form.value.projectName,
-          ProjectNumber: form.value.projectNumber,
-          Summary: form.value.summary,
-          ProjectStartDate: form.value.startDate,
-          ProjectEndDate: form.value.endDate,
-          Owner: form.value.owner,
-          Priority: form.value.priority,
-          Status: form.value.status,
-          CompletionPercent: 0
-        }
-
-        const newProject = await projectStore.createProject(projectData)
-        
-        showToast(t('projects.createSuccess'), 'success')
-        router.push(`/projects/${newProject.RecId}`)
+        await projectStore.fetchProjects()
+        showToast(t('actions.refreshSuccess'), 'success')
       } catch (error) {
-        console.error('Failed to create project:', error)
-        showToast(t('projects.createError'), 'error')
+        console.error('Failed to refresh projects:', error)
+        showToast(t('actions.refreshError'), 'error')
       } finally {
         isLoading.value = false
       }
     }
 
-    const handleCancel = () => {
-      router.push('/projects')
+    const selectProject = (project) => {
+      router.push(`/projects/${project.RecId}`)
     }
 
+    const createProject = () => {
+      router.push('/projects/new')
+    }
+
+    const editProject = (project) => {
+      router.push(`/projects/${project.RecId}/edit`)
+    }
+
+    const viewDetails = (project) => {
+      router.push(`/projects/${project.RecId}/details`)
+    }
+
+    const deleteProject = async (project) => {
+      if (confirm(t('projects.confirmDelete', { name: project.ProjectName }))) {
+        try {
+          await projectStore.deleteProject(project.RecId)
+          showToast(t('projects.deleteSuccess'), 'success')
+        } catch (error) {
+          console.error('Failed to delete project:', error)
+          showToast(t('projects.deleteError'), 'error')
+        }
+      }
+    }
+
+    const formatDate = (dateString) => {
+      if (!dateString) return '-'
+      return new Date(dateString).toLocaleDateString(undefined, { 
+        month: 'short', 
+        day: 'numeric',
+        year: 'numeric'
+      })
+    }
+
+    const getStatusClass = (status) => {
+      if (!status) return 'unknown'
+      return status.toLowerCase().replace(/\s+/g, '-')
+    }
+
+    onMounted(() => {
+      if (filteredProjects.value.length === 0) {
+        refreshData()
+      }
+    })
+
     return {
-      form,
       isLoading,
-      isFormValid,
-      handleSubmit,
-      handleCancel,
+      filteredProjects,
+      refreshData,
+      selectProject,
+      createProject,
+      editProject,
+      viewDetails,
+      deleteProject,
+      formatDate,
+      getStatusClass,
       t
     }
   }
@@ -210,157 +251,400 @@ export default {
 </script>
 
 <style scoped>
-.project-create-view {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 24px;
+/* Uses global CSS variables and styles from main.css */
+.project-card-view {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--mdc-theme-background);
 }
 
-.create-header {
-  margin-bottom: 32px;
-  text-align: center;
-}
-
-.create-header h1 {
-  margin: 0 0 8px 0;
-  color: rgba(0, 0, 0, 0.87);
-}
-
-.create-header p {
-  margin: 0;
-  color: rgba(0, 0, 0, 0.6);
-}
-
-.create-form-container {
-  background: white;
-  border-radius: 8px;
-  padding: 32px;
+.view-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: var(--mdc-theme-surface);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
   box-shadow: var(--mdc-elevation-01);
 }
 
-.project-form {
+.toolbar-left {
   display: flex;
-  flex-direction: column;
-  gap: 32px;
-}
-
-.form-section {
-  display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 16px;
 }
 
-.form-section h2 {
-  margin: 0 0 8px 0;
-  color: rgba(0, 0, 0, 0.87);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-  padding-bottom: 8px;
+.view-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--mdc-theme-text-primary-on-background);
 }
 
-.form-row {
+.project-count {
+  background: var(--mdc-theme-primary);
+  color: var(--mdc-theme-on-primary);
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.view-content {
+  flex: 1;
+  padding: 24px;
+  overflow: auto;
+}
+
+/* Loading State */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--mdc-theme-text-secondary-on-background);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: var(--mdc-theme-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin: 0;
+  color: var(--mdc-theme-text-secondary-on-background);
+}
+
+/* Projects Cards Grid */
+.projects-cards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 24px;
+}
+
+.project-card {
+  background: var(--mdc-theme-surface);
+  border-radius: 12px;
+  box-shadow: var(--mdc-elevation-01);
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.project-card:hover {
+  box-shadow: var(--mdc-elevation-04);
+  transform: translateY(-2px);
+}
+
+.card-header {
+  padding: 20px 20px 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   gap: 16px;
 }
 
-.form-field {
+.card-title-section {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-title {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--mdc-theme-text-primary-on-background);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.project-number {
+  font-size: 12px;
+  color: var(--mdc-theme-text-secondary-on-background);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-chip {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.status-chip--active { background: #e8f5e8; color: #2e7d2e; }
+.status-chip--completed { background: #e3f2fd; color: #1976d2; }
+.status-chip--on-hold { background: #fff3e0; color: #f57c00; }
+.status-chip--cancelled { background: #ffebee; color: #d32f2f; }
+.status-chip--unknown { background: #f5f5f5; color: #666; }
+
+.card-body {
+  padding: 16px 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.project-description {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--mdc-theme-text-secondary-on-background);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.project-meta {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.form-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.87);
-}
-
-.form-input,
-.form-select,
-.form-textarea {
-  padding: 12px 16px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 4px;
-  font-size: 16px;
-  font-family: inherit;
-  transition: border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.form-input:focus,
-.form-select:focus,
-.form-textarea:focus {
-  outline: none;
-  border-color: var(--mdc-theme-primary, #1976d2);
-}
-
-.form-textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-.form-actions {
+.meta-row {
   display: flex;
-  justify-content: flex-end;
-  gap: 16px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
 }
 
-.mdc-button {
-  padding: 8px 24px;
+.meta-label {
+  color: var(--mdc-theme-text-secondary-on-background);
+  font-weight: 500;
+}
+
+.meta-value {
+  color: var(--mdc-theme-text-primary-on-background);
+  font-weight: 500;
+}
+
+.meta-value.priority {
+  padding: 2px 8px;
   border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.priority--critical { background: #ffebee; color: #d32f2f; }
+.priority--high { background: #fff3e0; color: #f57c00; }
+.priority--medium { background: #e8f5e8; color: #2e7d2e; }
+.priority--low { background: #f3e5f5; color: #7b1fa2; }
+
+.progress-section {
+  margin-top: auto;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.progress-label {
   font-size: 14px;
   font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  border: none;
-  min-width: 120px;
+  color: var(--mdc-theme-text-secondary-on-background);
 }
 
-.mdc-button--outlined {
-  background: white;
-  color: var(--mdc-theme-primary, #1976d2);
-  border: 1px solid rgba(25, 118, 210, 0.12);
+.progress-percentage {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--mdc-theme-primary);
 }
 
-.mdc-button--outlined:hover {
-  background: rgba(25, 118, 210, 0.04);
+.progress-bar {
+  height: 8px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
 }
 
-.mdc-button--raised {
-  background: var(--mdc-theme-primary, #1976d2);
-  color: white;
-  box-shadow: var(--mdc-elevation-02);
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--mdc-theme-primary), var(--mdc-theme-primary-variant));
+  transition: width 0.3s ease;
+  border-radius: 4px;
 }
 
-.mdc-button--raised:hover {
-  background: #1565c0;
-  box-shadow: var(--mdc-elevation-04);
+.milestone-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--mdc-theme-text-secondary-on-background);
+  margin-top: 8px;
 }
 
-.mdc-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.card-footer {
+  padding: 16px 20px 20px 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.date-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--mdc-theme-text-secondary-on-background);
+}
+
+.date-label {
+  font-weight: 500;
+}
+
+.date-separator {
+  opacity: 0.5;
+}
+
+.card-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.action-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mdc-theme-text-secondary-on-background);
+  transition: all 0.2s ease;
+  border-radius: 8px;
+}
+
+.action-btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--mdc-theme-primary);
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--mdc-theme-text-secondary-on-background);
+}
+
+.empty-icon {
+  opacity: 0.5;
+  margin-bottom: 24px;
+}
+
+.empty-title {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--mdc-theme-text-primary-on-background);
+}
+
+.empty-description {
+  margin: 0 0 24px 0;
+  color: var(--mdc-theme-text-secondary-on-background);
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .project-create-view {
+  .view-toolbar {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .toolbar-left {
+    justify-content: center;
+  }
+
+  .toolbar-actions {
+    justify-content: center;
+  }
+
+  .projects-cards {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .card-footer {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .date-range {
+    justify-content: center;
+  }
+
+  .card-actions {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .view-content {
     padding: 16px;
   }
 
-  .create-form-container {
-    padding: 24px;
+  .project-card {
+    border-radius: 8px;
   }
 
-  .form-row {
-    grid-template-columns: 1fr;
+  .card-header {
+    padding: 16px 16px 0 16px;
   }
 
-  .form-actions {
-    flex-direction: column;
+  .card-body {
+    padding: 12px 16px;
+  }
+
+  .card-footer {
+    padding: 12px 16px 16px 16px;
   }
 }
 </style>

@@ -1,11 +1,11 @@
 <template>
   <div class="project-list-view">
     <!-- PROJECT LIST VIEW -->
-    <div class="view-toolbar mdc-card">
+    <div class="view-toolbar">
       <div class="toolbar-left">
-        <h2 class="mdc-typography--headline6">{{ t('projects.title') }}</h2>
-        <span class="project-count mdc-typography--caption">
-          {{ filteredProjects.length }} {{ t('projects.title').toLowerCase() }}
+        <h2 class="view-title">Projects</h2>
+        <span class="project-count">
+          {{ filteredProjects.length }} projects
         </span>
       </div>
       <div class="toolbar-actions">
@@ -13,13 +13,17 @@
           class="mdc-button mdc-button--outlined refresh-btn" 
           @click="refreshData" 
           :disabled="isLoading"
-          :title="t('actions.refresh')"
+          title="Refresh"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
           </svg>
         </button>
-        <button class="mdc-button mdc-button--raised create-btn" @click="createProject" :title="t('actions.createProject')">
+        <button 
+          class="mdc-button mdc-button--raised create-btn" 
+          @click="createProject" 
+          title="Create Project"
+        >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
           </svg>
@@ -31,113 +35,138 @@
       <!-- Loading State -->
       <div v-if="isLoading" class="loading-state">
         <div class="loading-spinner"></div>
-        <p class="mdc-typography--body1">{{ t('app.loading') }}</p>
+        <p class="loading-text">Loading...</p>
       </div>
 
       <!-- Projects Grid -->
       <div v-else-if="filteredProjects.length > 0" class="projects-grid">
-        <div class="mdc-data-table">
-          <div class="mdc-data-table__table-container">
-            <table class="mdc-data-table__table">
-              <thead>
-                <tr class="mdc-data-table__header-row">
-                  <th class="mdc-data-table__header-cell" role="columnheader" scope="col">
-                    {{ t('projects.name') }}
-                  </th>
-                  <th class="mdc-data-table__header-cell" role="columnheader" scope="col">
-                    {{ t('projects.status') }}
-                  </th>
-                  <th class="mdc-data-table__header-cell" role="columnheader" scope="col">
-                    {{ t('projects.owner') }}
-                  </th>
-                  <th class="mdc-data-table__header-cell" role="columnheader" scope="col">
-                    {{ t('projects.startDate') }}
-                  </th>
-                  <th class="mdc-data-table__header-cell" role="columnheader" scope="col">
-                    {{ t('projects.endDate') }}
-                  </th>
-                  <th class="mdc-data-table__header-cell" role="columnheader" scope="col">
-                    {{ t('projects.progress') }}
-                  </th>
-                  <th class="mdc-data-table__header-cell" role="columnheader" scope="col">
-                    {{ t('actions.title') }}
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="mdc-data-table__content">
-                <tr 
-                  v-for="project in filteredProjects" 
-                  :key="project.RecId"
-                  class="mdc-data-table__row"
-                  @click="selectProject(project)"
-                >
-                  <td class="mdc-data-table__cell">
-                    <div class="project-cell">
-                      <div class="project-name">{{ project.ProjectName }}</div>
-                      <div class="project-number mdc-typography--caption">
-                        #{{ project.ProjectNumber }}
-                      </div>
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr class="table-header-row">
+                <th class="table-header-cell sortable" @click="sortBy('ProjectName')">
+                  Project Name
+                  <svg v-if="sortField === 'ProjectName'" class="sort-icon" width="16" height="16" viewBox="0 0 24 24">
+                    <path :d="sortDirection === 'asc' ? 'M7,14L12,9L17,14H7Z' : 'M7,10L12,15L17,10H7Z'" />
+                  </svg>
+                </th>
+                <th class="table-header-cell sortable" @click="sortBy('Status')">
+                  Status
+                  <svg v-if="sortField === 'Status'" class="sort-icon" width="16" height="16" viewBox="0 0 24 24">
+                    <path :d="sortDirection === 'asc' ? 'M7,14L12,9L17,14H7Z' : 'M7,10L12,15L17,10H7Z'" />
+                  </svg>
+                </th>
+                <th class="table-header-cell sortable" @click="sortBy('Owner')">
+                  Owner
+                  <svg v-if="sortField === 'Owner'" class="sort-icon" width="16" height="16" viewBox="0 0 24 24">
+                    <path :d="sortDirection === 'asc' ? 'M7,14L12,9L17,14H7Z' : 'M7,10L12,15L17,10H7Z'" />
+                  </svg>
+                </th>
+                <th class="table-header-cell sortable" @click="sortBy('Priority')">
+                  Priority
+                  <svg v-if="sortField === 'Priority'" class="sort-icon" width="16" height="16" viewBox="0 0 24 24">
+                    <path :d="sortDirection === 'asc' ? 'M7,14L12,9L17,14H7Z' : 'M7,10L12,15L17,10H7Z'" />
+                  </svg>
+                </th>
+                <th class="table-header-cell">Progress</th>
+                <th class="table-header-cell sortable" @click="sortBy('ProjectStartDate')">
+                  Start Date
+                  <svg v-if="sortField === 'ProjectStartDate'" class="sort-icon" width="16" height="16" viewBox="0 0 24 24">
+                    <path :d="sortDirection === 'asc' ? 'M7,14L12,9L17,14H7Z' : 'M7,10L12,15L17,10H7Z'" />
+                  </svg>
+                </th>
+                <th class="table-header-cell sortable" @click="sortBy('ProjectEndDate')">
+                  End Date
+                  <svg v-if="sortField === 'ProjectEndDate'" class="sort-icon" width="16" height="16" viewBox="0 0 24 24">
+                    <path :d="sortDirection === 'asc' ? 'M7,14L12,9L17,14H7Z' : 'M7,10L12,15L17,10H7Z'" />
+                  </svg>
+                </th>
+                <th class="table-header-cell">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="project in sortedProjects"
+                :key="project.RecId"
+                class="table-row"
+                @click="selectProject(project)"
+              >
+                <td class="table-cell">
+                  <div class="project-name-cell">
+                    <span class="project-name">{{ project.ProjectName }}</span>
+                    <span class="project-number">#{{ project.ProjectNumber }}</span>
+                  </div>
+                </td>
+                <td class="table-cell">
+                  <span class="status-chip" :class="`status-chip--${getStatusClass(project.Status)}`">
+                    {{ project.Status }}
+                  </span>
+                </td>
+                <td class="table-cell">{{ project.Owner || '-' }}</td>
+                <td class="table-cell">
+                  <span class="priority-badge" :class="`priority--${(project.Priority || 'medium').toLowerCase()}`">
+                    {{ project.Priority || 'Medium' }}
+                  </span>
+                </td>
+                <td class="table-cell">
+                  <div class="progress-container">
+                    <div class="progress-bar">
+                      <div 
+                        class="progress-fill" 
+                        :style="{ width: `${project.CompletionPercent || 0}%` }"
+                      ></div>
                     </div>
-                  </td>
-                  <td class="mdc-data-table__cell">
-                    <span class="status-chip" :class="`status-chip--${getStatusClass(project.Status)}`">
-                      {{ project.Status }}
-                    </span>
-                  </td>
-                  <td class="mdc-data-table__cell">{{ project.Owner }}</td>
-                  <td class="mdc-data-table__cell">{{ formatDate(project.ProjectStartDate) }}</td>
-                  <td class="mdc-data-table__cell">{{ formatDate(project.ProjectEndDate) }}</td>
-                  <td class="mdc-data-table__cell">
-                    <div class="progress-container">
-                      <div class="progress-bar">
-                        <div 
-                          class="progress-fill" 
-                          :style="{ width: `${project.CompletionPercent || 0}%` }"
-                        ></div>
-                      </div>
-                      <span class="progress-text">{{ project.CompletionPercent || 0 }}%</span>
-                    </div>
-                  </td>
-                  <td class="mdc-data-table__cell">
-                    <div class="action-buttons">
-                      <button 
-                        class="mdc-icon-button" 
-                        @click.stop="editProject(project)"
-                        :title="t('actions.edit')"
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"/>
-                        </svg>
-                      </button>
-                      <button 
-                        class="mdc-icon-button" 
-                        @click.stop="deleteProject(project)"
-                        :title="t('actions.delete')"
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z"/>
-                        </svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+                    <span class="progress-text">{{ project.CompletionPercent || 0 }}%</span>
+                  </div>
+                </td>
+                <td class="table-cell">{{ formatDate(project.ProjectStartDate) }}</td>
+                <td class="table-cell">{{ formatDate(project.ProjectEndDate) }}</td>
+                <td class="table-cell">
+                  <div class="action-buttons" @click.stop>
+                    <button 
+                      class="mdc-button action-btn" 
+                      @click="editProject(project)"
+                      title="Edit"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"/>
+                      </svg>
+                    </button>
+                    <button 
+                      class="mdc-button action-btn" 
+                      @click="viewDetails(project)"
+                      title="View Details"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z"/>
+                      </svg>
+                    </button>
+                    <button 
+                      class="mdc-button action-btn" 
+                      @click="deleteProject(project)"
+                      title="Delete"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z"/>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
       <!-- Empty State -->
       <div v-else class="empty-state">
-        <div class="empty-icon">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
-          </svg>
-        </div>
-        <h3 class="mdc-typography--headline6">{{ t('projects.noProjects') }}</h3>
-        <p class="mdc-typography--body1">{{ t('projects.createFirstProject') }}</p>
+        <svg class="empty-icon" width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+        </svg>
+        <h3 class="empty-title">No Projects Found</h3>
+        <p class="empty-description">Get started by creating your first project.</p>
         <button class="mdc-button mdc-button--raised" @click="createProject">
-          {{ t('projects.create') }}
+          Create Project
         </button>
       </div>
     </div>
@@ -145,7 +174,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, inject } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectStore } from '@/stores/projectStore'
 import { useLocalization } from '@/composables/useLocalization'
@@ -160,9 +189,56 @@ export default {
     const { showToast } = useToast()
 
     const isLoading = ref(false)
+    const searchQuery = ref('')
+    const statusFilter = ref('')
+    const ownerFilter = ref('')
+    const priorityFilter = ref('')
+    const sortField = ref('ProjectName')
+    const sortDirection = ref('asc')
 
-    // Access filteredProjects from parent component context
-    const filteredProjects = inject('filteredProjects', computed(() => projectStore.projects))
+    // Computed sorted projects
+    const sortedProjects = computed(() => {
+      let projects = [...projectStore.projects]
+      
+      // Apply search filter
+      if (searchQuery.value) {
+        const query = searchQuery.value.toLowerCase()
+        projects = projects.filter(project => 
+          project.ProjectName?.toLowerCase().includes(query) ||
+          project.Description?.toLowerCase().includes(query) ||
+          project.Owner?.toLowerCase().includes(query)
+        )
+      }
+
+      // Apply status filter
+      if (statusFilter.value) {
+        projects = projects.filter(project => project.Status === statusFilter.value)
+      }
+
+      // Apply owner filter
+      if (ownerFilter.value) {
+        projects = projects.filter(project => project.Owner === ownerFilter.value)
+      }
+
+      // Apply priority filter
+      if (priorityFilter.value) {
+        projects = projects.filter(project => project.Priority === priorityFilter.value)
+      }
+      
+      return projects.sort((a, b) => {
+        const aVal = a[sortField.value] || ''
+        const bVal = b[sortField.value] || ''
+        
+        if (sortDirection.value === 'asc') {
+          return aVal.toString().localeCompare(bVal.toString())
+        } else {
+          return bVal.toString().localeCompare(aVal.toString())
+        }
+      })
+    })
+
+    // Use sortedProjects as filteredProjects for compatibility
+    const filteredProjects = computed(() => sortedProjects.value)
 
     const refreshData = async () => {
       isLoading.value = true
@@ -177,6 +253,15 @@ export default {
       }
     }
 
+    const sortBy = (field) => {
+      if (sortField.value === field) {
+        sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
+      } else {
+        sortField.value = field
+        sortDirection.value = 'asc'
+      }
+    }
+
     const selectProject = (project) => {
       router.push(`/projects/${project.RecId}`)
     }
@@ -187,6 +272,10 @@ export default {
 
     const editProject = (project) => {
       router.push(`/projects/${project.RecId}/edit`)
+    }
+
+    const viewDetails = (project) => {
+      router.push(`/projects/${project.RecId}/details`)
     }
 
     const deleteProject = async (project) => {
@@ -203,33 +292,49 @@ export default {
 
     const formatDate = (dateString) => {
       if (!dateString) return '-'
-      return new Date(dateString).toLocaleDateString()
+      
+      try {
+        const date = new Date(dateString)
+        // Check if date is valid
+        if (isNaN(date.getTime())) {
+          console.warn('Invalid date:', dateString)
+          return '-'
+        }
+        
+        return date.toLocaleDateString(undefined, {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        })
+      } catch (error) {
+        console.error('Date formatting error:', error, dateString)
+        return '-'
+      }
     }
 
     const getStatusClass = (status) => {
-      const statusMap = {
-        'Active': 'active',
-        'Planning': 'planning',
-        'On Hold': 'on-hold',
-        'Completed': 'completed',
-        'Cancelled': 'cancelled'
-      }
-      return statusMap[status] || 'default'
+      if (!status) return 'unknown'
+      return status.toLowerCase().replace(/\s+/g, '-')
     }
 
-    onMounted(() => {
+    onMounted(async () => {
       if (projectStore.projects.length === 0) {
-        refreshData()
+        await refreshData()
       }
     })
 
     return {
       isLoading,
       filteredProjects,
+      sortedProjects,
+      sortField,
+      sortDirection,
       refreshData,
+      sortBy,
       selectProject,
       createProject,
       editProject,
+      viewDetails,
       deleteProject,
       formatDate,
       getStatusClass,
@@ -240,11 +345,12 @@ export default {
 </script>
 
 <style scoped>
+/* Uses global CSS variables and styles from main.css */
 .project-list-view {
-  width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
+  background: var(--mdc-theme-background);
 }
 
 .view-toolbar {
@@ -252,78 +358,131 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 16px 24px;
-  margin-bottom: 16px;
-  gap: 16px;
+  background: var(--mdc-theme-surface);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: var(--mdc-elevation-01);
 }
 
 .toolbar-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
-.toolbar-left h2 {
+.view-title {
   margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--mdc-theme-text-primary-on-background);
 }
 
 .project-count {
-  background: rgba(0, 0, 0, 0.04);
-  padding: 4px 8px;
-  border-radius: 12px;
-  color: rgba(0, 0, 0, 0.6);
+  background: var(--mdc-theme-primary);
+  color: var(--mdc-theme-on-primary);
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .toolbar-actions {
   display: flex;
-  gap: 8px;
-  align-items: center;
+  gap: 12px;
 }
 
 .view-content {
   flex: 1;
+  padding: 24px;
   overflow: auto;
 }
 
+/* Loading State */
 .loading-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 48px;
-  gap: 16px;
+  height: 200px;
+  color: var(--mdc-theme-text-secondary-on-background);
 }
 
 .loading-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid rgba(0, 0, 0, 0.1);
-  border-top: 3px solid var(--mdc-theme-primary, #1976d2);
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: var(--mdc-theme-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  margin-bottom: 16px;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  to { transform: rotate(360deg); }
 }
 
-.projects-grid {
-  background: white;
+.loading-text {
+  margin: 0;
+  color: var(--mdc-theme-text-secondary-on-background);
+}
+
+/* Data Table */
+.data-table-container {
+  background: var(--mdc-theme-surface);
   border-radius: 8px;
-  overflow: hidden;
   box-shadow: var(--mdc-elevation-01);
+  overflow: hidden;
 }
 
-.mdc-data-table__row {
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-header-row {
+  background: #f5f5f5;
+}
+
+.table-header-cell {
+  padding: 16px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--mdc-theme-text-primary-on-background);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  position: relative;
+}
+
+.table-header-cell.sortable {
   cursor: pointer;
-  transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  transition: background-color 0.2s ease;
 }
 
-.mdc-data-table__row:hover {
-  background-color: rgba(0, 0, 0, 0.04);
+.table-header-cell.sortable:hover {
+  background: rgba(0, 0, 0, 0.04);
 }
 
-.project-cell {
+.sort-icon {
+  margin-left: 8px;
+  vertical-align: middle;
+  opacity: 0.7;
+}
+
+.table-row {
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.table-row:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.table-cell {
+  padding: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  color: var(--mdc-theme-text-primary-on-background);
+}
+
+.project-name-cell {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -331,77 +490,68 @@ export default {
 
 .project-name {
   font-weight: 500;
+  color: var(--mdc-theme-text-primary-on-background);
 }
 
 .project-number {
-  color: rgba(0, 0, 0, 0.6);
+  font-size: 12px;
+  color: var(--mdc-theme-text-secondary-on-background);
 }
 
 .status-chip {
   display: inline-block;
-  padding: 4px 12px;
-  border-radius: 16px;
+  padding: 4px 8px;
+  border-radius: 12px;
   font-size: 12px;
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
-.status-chip--active {
-  background: #e8f5e8;
-  color: #2e7d32;
+.status-chip--active { background: #e8f5e8; color: #2e7d2e; }
+.status-chip--completed { background: #e3f2fd; color: #1976d2; }
+.status-chip--on-hold { background: #fff3e0; color: #f57c00; }
+.status-chip--cancelled { background: #ffebee; color: #d32f2f; }
+.status-chip--unknown { background: #f5f5f5; color: #666; }
+
+.priority-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
 }
 
-.status-chip--planning {
-  background: #fff3e0;
-  color: #f57c00;
-}
-
-.status-chip--on-hold {
-  background: #fce4ec;
-  color: #c2185b;
-}
-
-.status-chip--completed {
-  background: #e3f2fd;
-  color: #1976d2;
-}
-
-.status-chip--cancelled {
-  background: #fafafa;
-  color: #616161;
-}
-
-.status-chip--default {
-  background: #f5f5f5;
-  color: #757575;
-}
+.priority--critical { background: #ffebee; color: #d32f2f; }
+.priority--high { background: #fff3e0; color: #f57c00; }
+.priority--medium { background: #e8f5e8; color: #2e7d2e; }
+.priority--low { background: #f3e5f5; color: #7b1fa2; }
 
 .progress-container {
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 100px;
 }
 
 .progress-bar {
   flex: 1;
-  height: 6px;
-  background: #e0e0e0;
-  border-radius: 3px;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background: var(--mdc-theme-primary, #1976d2);
-  transition: width 300ms ease;
+  background: var(--mdc-theme-primary);
+  transition: width 0.3s ease;
 }
 
 .progress-text {
   font-size: 12px;
-  color: rgba(0, 0, 0, 0.6);
-  min-width: 32px;
+  font-weight: 500;
+  color: var(--mdc-theme-text-secondary-on-background);
+  min-width: 35px;
 }
 
 .action-buttons {
@@ -409,25 +559,25 @@ export default {
   gap: 4px;
 }
 
-.mdc-icon-button {
+.action-btn {
   width: 32px;
   height: 32px;
-  border: none;
-  background: none;
-  color: rgba(0, 0, 0, 0.6);
-  cursor: pointer;
-  border-radius: 16px;
+  padding: 0;
+  min-width: auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--mdc-theme-text-secondary-on-background);
+  transition: all 0.2s ease;
+  border-radius: 50%;
 }
 
-.mdc-icon-button:hover {
+.action-btn:hover {
   background: rgba(0, 0, 0, 0.04);
-  color: rgba(0, 0, 0, 0.87);
+  color: var(--mdc-theme-primary);
 }
 
+/* Empty State */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -435,28 +585,32 @@ export default {
   justify-content: center;
   padding: 48px 24px;
   text-align: center;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--mdc-theme-text-secondary-on-background);
 }
 
 .empty-icon {
-  margin-bottom: 16px;
   opacity: 0.5;
+  margin-bottom: 24px;
 }
 
-.empty-state h3 {
+.empty-title {
   margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--mdc-theme-text-primary-on-background);
 }
 
-.empty-state p {
+.empty-description {
   margin: 0 0 24px 0;
+  color: var(--mdc-theme-text-secondary-on-background);
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
   .view-toolbar {
     flex-direction: column;
+    gap: 16px;
     align-items: stretch;
-    gap: 12px;
   }
 
   .toolbar-left {
@@ -467,16 +621,14 @@ export default {
     justify-content: center;
   }
 
-  .mdc-data-table__table {
-    font-size: 14px;
+  .data-table-container {
+    overflow-x: auto;
   }
 
-  .progress-container {
-    width: 80px;
-  }
-
-  .action-buttons {
-    flex-direction: column;
+  .table-header-cell,
+  .table-cell {
+    padding: 12px 8px;
+    white-space: nowrap;
   }
 }
 </style>

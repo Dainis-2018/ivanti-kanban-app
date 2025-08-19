@@ -1,86 +1,63 @@
 <template>
   <div class="project-roadmap-view">
-    <!-- GANTT ROADMAP TOOLBAR -->
-    <div class="view-toolbar mdc-card">
+    <!-- PROJECT ROADMAP VIEW -->
+    <div class="view-toolbar">
       <div class="toolbar-left">
-        <h2 class="mdc-typography--headline6">{{ t('views.roadmap') }}</h2>
-        <div class="view-mode-switcher">
+        <h2 class="view-title">{{ t('projects.roadmap') }}</h2>
+        <span class="project-count">
+          {{ filteredProjects.length }} {{ t('projects.title').toLowerCase() }}
+        </span>
+      </div>
+      <div class="toolbar-center">
+        <!-- Roadmap View Mode Toggle -->
+        <div class="view-mode-toggle">
           <button 
-            class="mode-btn" 
+            class="btn btn--toggle" 
             :class="{ active: viewMode === 'projects' }"
             @click="setViewMode('projects')"
           >
-            {{ t('roadmap.projectsMilestones') }}
+            {{ t('roadmap.projectsOnly') }}
           </button>
           <button 
-            class="mode-btn" 
-            :class="{ active: viewMode === 'full' }"
-            @click="setViewMode('full')"
+            class="btn btn--toggle" 
+            :class="{ active: viewMode === 'hierarchy' }"
+            @click="setViewMode('hierarchy')"
           >
             {{ t('roadmap.fullHierarchy') }}
           </button>
         </div>
       </div>
       <div class="toolbar-actions">
-        <div class="zoom-controls">
-          <button 
-            class="mdc-icon-button" 
-            @click="zoomIn"
-            :title="t('actions.zoomIn')"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M15.5,14H20.5L14,7.5L9.5,12L6,8.5L0.5,14H15.5M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,5V19H5V5H19Z"/>
-            </svg>
-          </button>
-          <button 
-            class="mdc-icon-button" 
-            @click="zoomOut"
-            :title="t('actions.zoomOut')"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M15.5,14H20.5L18,11.5L15.5,14M14,7.5L9.5,12L6,8.5L0.5,14H13L14,7.5Z"/>
-            </svg>
-          </button>
-          <select v-model="timelineUnit" @change="updateTimeline" class="timeline-selector">
-            <option value="Day">{{ t('roadmap.day') }}</option>
-            <option value="Week">{{ t('roadmap.week') }}</option>
-            <option value="Month">{{ t('roadmap.month') }}</option>
-            <option value="Quarter">{{ t('roadmap.quarter') }}</option>
-            <option value="Year">{{ t('roadmap.year') }}</option>
-          </select>
-        </div>
-        <div class="action-buttons">
-          <button 
-            class="mdc-button mdc-button--outlined" 
-            @click="exportRoadmap"
-            :title="t('actions.export')"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-            </svg>
-            {{ t('actions.export') }}
-          </button>
-          <button 
-            class="mdc-button mdc-button--outlined refresh-btn" 
-            @click="refreshData" 
-            :disabled="isLoading"
-            :title="t('actions.refresh')"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
-            </svg>
-          </button>
-          <button 
-            class="mdc-button mdc-button--raised create-btn" 
-            @click="createProject" 
-            :title="t('actions.createProject')"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
-            </svg>
-            {{ t('projects.create') }}
-          </button>
-        </div>
+        <button 
+          class="btn btn--outlined refresh-btn" 
+          @click="refreshData" 
+          :disabled="isLoading"
+          :title="t('actions.refresh')"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
+          </svg>
+        </button>
+        <button 
+          class="btn btn--outlined export-btn" 
+          @click="exportGantt"
+          :title="t('actions.export')"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+          </svg>
+          <span>{{ t('actions.export') }}</span>
+        </button>
+        <button 
+          class="btn btn--raised create-btn" 
+          @click="createProject" 
+          :title="t('actions.createProject')"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+          </svg>
+          <span>{{ t('projects.create') }}</span>
+        </button>
       </div>
     </div>
 
@@ -88,71 +65,82 @@
       <!-- Loading State -->
       <div v-if="isLoading" class="loading-state">
         <div class="loading-spinner"></div>
-        <p class="mdc-typography--body1">{{ t('app.loading') }}</p>
+        <p class="loading-text">{{ t('app.loading') }}</p>
       </div>
 
       <!-- Gantt Chart -->
-      <div v-else-if="ganttDataSource.length > 0" class="gantt-container">
+      <div v-else-if="ganttData.length > 0" class="gantt-container">
         <ejs-gantt
           ref="ganttChart"
-          id="roadmapGantt"
-          :dataSource="ganttDataSource"
-          :taskFields="taskSettings"
-          :timelineSettings="timelineSettings"
+          :dataSource="ganttData"
+          :taskFields="taskFields"
+          :treeColumnIndex="1"
           :columns="ganttColumns"
           :splitterSettings="splitterSettings"
-          :labelSettings="labelSettings"
           :projectStartDate="projectStartDate"
           :projectEndDate="projectEndDate"
-          :includeWeekend="false"
+          :timelineSettings="timelineSettings"
+          :gridLines="'Both'"
+          :height="'100%'"
+          :allowSelection="true"
           :allowSorting="true"
           :allowReordering="true"
           :allowResizing="true"
+          :showColumnMenu="true"
           :allowFiltering="true"
-          :showColumnMenu="false"
           :allowExcelExport="true"
           :allowPdfExport="true"
-          :height="ganttHeight"
-          :rowHeight="rowHeight"
-          :taskbarHeight="taskbarHeight"
-          :gridLines="gridLines"
-          @load="onGanttLoad"
+          :editSettings="editSettings"
+          :toolbar="toolbarOptions"
+          :labelSettings="labelSettings"
+          :rowHeight="40"
           @actionBegin="onActionBegin"
           @actionComplete="onActionComplete"
-          @taskbarEditing="onTaskbarEdit"
-          @rowSelected="onRowSelected"
+          @taskbarEditing="onTaskbarEditing"
+          @toolbarClick="onToolbarClick"
         >
-          <e-columns>
-            <e-column field="TaskName" headerText="Name" width="250" :clipMode="clipMode"></e-column>
-            <e-column field="StartDate" headerText="Start Date" width="120"></e-column>
-            <e-column field="EndDate" headerText="End Date" width="120"></e-column>
-            <e-column field="Duration" headerText="Duration" width="80"></e-column>
-            <e-column field="Progress" headerText="Progress" width="80"></e-column>
-            <e-column field="Priority" headerText="Priority" width="100" v-if="viewMode === 'full'"></e-column>
-            <e-column field="Owner" headerText="Owner" width="120"></e-column>
-          </e-columns>
         </ejs-gantt>
       </div>
 
       <!-- Empty State -->
       <div v-else class="empty-state">
-        <div class="empty-icon">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M3,3H21V5H19V19A2,2 0 0,1 17,21H7A2,2 0 0,1 5,19V5H3V3M7,5V19H17V5H7M9,7H15V9H9V7M9,11H15V13H9V11M9,15H15V17H9V15Z"/>
-          </svg>
-        </div>
-        <h3 class="mdc-typography--headline6">{{ t('roadmap.noData') }}</h3>
-        <p class="mdc-typography--body1">{{ t('roadmap.noDataDescription') }}</p>
-        <button class="mdc-button mdc-button--raised" @click="createProject">
+        <svg class="empty-icon" width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3,3H21V5H3V3M3,7H15V9H3V7M3,11H21V13H3V11M3,15H15V17H3V15M3,19H21V21H3V19Z"/>
+        </svg>
+        <h3 class="empty-title">{{ t('roadmap.noData') }}</h3>
+        <p class="empty-description">{{ t('roadmap.createFirstProject') }}</p>
+        <button class="btn btn--raised" @click="createProject">
           {{ t('projects.create') }}
         </button>
       </div>
+    </div>
+
+    <!-- Gantt Context Menu -->
+    <div v-if="showContextMenu" class="gantt-context-menu" :style="contextMenuStyle">
+      <button class="context-menu-item" @click="editTask">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"/>
+        </svg>
+        {{ t('actions.edit') }}
+      </button>
+      <button class="context-menu-item" @click="deleteTask">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
+        </svg>
+        {{ t('actions.delete') }}
+      </button>
+      <button class="context-menu-item" @click="addSubTask">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+        </svg>
+        {{ t('actions.addSubTask') }}
+      </button>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, computed, onMounted, watch, inject } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectStore } from '@/stores/projectStore'
 import { useMilestoneStore } from '@/stores/milestoneStore'
@@ -160,273 +148,260 @@ import { useTaskStore } from '@/stores/taskStore'
 import { useLocalization } from '@/composables/useLocalization'
 import { useToast } from '@/composables/useToast'
 
-// Syncfusion Gantt imports
-import { 
-  GanttComponent, 
-  ColumnsDirective, 
-  ColumnDirective,
-  Edit, 
-  Toolbar, 
-  Selection, 
-  Filter, 
-  Sort,
-  Reorder,
-  Resize,
-  ExcelExport,
-  PdfExport
-} from '@syncfusion/ej2-vue-gantt'
-
 export default {
   name: 'ProjectRoadmapView',
-  components: {
-    'ejs-gantt': GanttComponent,
-    'e-columns': ColumnsDirective,
-    'e-column': ColumnDirective
-  },
-  provide: {
-    gantt: [Edit, Toolbar, Selection, Filter, Sort, Reorder, Resize, ExcelExport, PdfExport]
-  },
   setup() {
     const router = useRouter()
     const projectStore = useProjectStore()
+    const milestoneStore = useMilestoneStore()
+    const taskStore = useTaskStore()
     const { t } = useLocalization()
     const { showToast } = useToast()
 
-    // Refs
-    const ganttChart = ref(null)
     const isLoading = ref(false)
-    const viewMode = ref('projects') // 'projects' or 'full'
-    const timelineUnit = ref('Month')
+    const viewMode = ref('projects') // 'projects' or 'hierarchy'
+    const ganttChart = ref(null)
+    const showContextMenu = ref(false)
+    const contextMenuStyle = ref({})
+    const selectedTask = ref(null)
+    const searchQuery = ref('')
+    const statusFilter = ref('')
+    const ownerFilter = ref('')
+    const priorityFilter = ref('')
 
-    // Access filteredProjects from parent component context
-    const filteredProjects = inject('filteredProjects', computed(() => projectStore.projects))
+    // Computed filtered projects
+    const filteredProjects = computed(() => {
+      let projects = [...projectStore.projects]
+      
+      // Apply search filter
+      if (searchQuery.value) {
+        const query = searchQuery.value.toLowerCase()
+        projects = projects.filter(project => 
+          project.ProjectName?.toLowerCase().includes(query) ||
+          project.Description?.toLowerCase().includes(query) ||
+          project.Owner?.toLowerCase().includes(query)
+        )
+      }
 
-    // Gantt Configuration
-    const taskSettings = ref({
+      // Apply status filter
+      if (statusFilter.value) {
+        projects = projects.filter(project => project.Status === statusFilter.value)
+      }
+
+      // Apply owner filter
+      if (ownerFilter.value) {
+        projects = projects.filter(project => project.Owner === ownerFilter.value)
+      }
+
+      // Apply priority filter
+      if (priorityFilter.value) {
+        projects = projects.filter(project => project.Priority === priorityFilter.value)
+      }
+
+      return projects
+    })
+
+    // Gantt configuration
+    const taskFields = computed(() => ({
       id: 'TaskID',
       name: 'TaskName',
       startDate: 'StartDate',
       endDate: 'EndDate',
       duration: 'Duration',
       progress: 'Progress',
-      child: 'subtasks',
-      dependency: 'Predecessor'
-    })
-
-    const timelineSettings = computed(() => ({
-      topTier: {
-        unit: timelineUnit.value === 'Day' ? 'Week' : 
-              timelineUnit.value === 'Week' ? 'Month' :
-              timelineUnit.value === 'Month' ? 'Quarter' :
-              timelineUnit.value === 'Quarter' ? 'Year' : 'Year',
-        format: timelineUnit.value === 'Day' ? 'MMM dd, yyyy' :
-                timelineUnit.value === 'Week' ? 'MMM yyyy' :
-                timelineUnit.value === 'Month' ? 'yyyy' :
-                timelineUnit.value === 'Quarter' ? 'yyyy' : 'yyyy'
-      },
-      bottomTier: {
-        unit: timelineUnit.value,
-        format: timelineUnit.value === 'Day' ? 'dd' :
-                timelineUnit.value === 'Week' ? 'dd' :
-                timelineUnit.value === 'Month' ? 'MMM' :
-                timelineUnit.value === 'Quarter' ? 'Q' : 'yyyy'
-      },
-      timelineUnitSize: timelineUnit.value === 'Day' ? 50 :
-                        timelineUnit.value === 'Week' ? 80 :
-                        timelineUnit.value === 'Month' ? 100 :
-                        timelineUnit.value === 'Quarter' ? 150 : 200
+      dependency: 'Predecessor',
+      parentID: 'ParentID',
+      notes: 'Notes'
     }))
 
     const ganttColumns = computed(() => [
-      { field: 'TaskName', headerText: t('projects.name'), width: 250 },
-      { field: 'StartDate', headerText: t('projects.startDate'), width: 120 },
-      { field: 'EndDate', headerText: t('projects.endDate'), width: 120 },
-      { field: 'Duration', headerText: t('projects.duration'), width: 80 },
-      { field: 'Progress', headerText: t('projects.progress'), width: 80 },
-      ...(viewMode.value === 'full' ? [
-        { field: 'Priority', headerText: t('projects.priority'), width: 100 },
-        { field: 'Owner', headerText: t('projects.owner'), width: 120 }
-      ] : [
-        { field: 'Owner', headerText: t('projects.owner'), width: 120 }
-      ])
+      { field: 'TaskID', headerText: 'ID', width: '70' },
+      { field: 'TaskName', headerText: t('common.name'), width: '250' },
+      { field: 'StartDate', headerText: t('common.startDate'), width: '120' },
+      { field: 'EndDate', headerText: t('common.endDate'), width: '120' },
+      { field: 'Duration', headerText: t('common.duration'), width: '100' },
+      { field: 'Progress', headerText: t('common.progress'), width: '100' }
     ])
 
     const splitterSettings = ref({
-      position: '40%',
-      columnIndex: 3
+      position: '40%'
     })
+
+    const timelineSettings = computed(() => ({
+      timelineViewMode: 'Month',
+      topTier: {
+        unit: 'Month',
+        format: 'MMM yyyy'
+      },
+      bottomTier: {
+        unit: 'Week',
+        format: 'dd'
+      }
+    }))
+
+    const editSettings = ref({
+      allowAdding: true,
+      allowEditing: true,
+      allowDeleting: true,
+      allowTaskbarEditing: true,
+      showDeleteConfirmDialog: true
+    })
+
+    const toolbarOptions = ref([
+      'Add', 'Edit', 'Update', 'Delete', 'Cancel', 'ExpandAll', 'CollapseAll',
+      'Search', 'ZoomIn', 'ZoomOut', 'ZoomToFit', 'PrevTimeSpan', 'NextTimeSpan',
+      'ExcelExport', 'PdfExport'
+    ])
 
     const labelSettings = ref({
       leftLabel: 'TaskName',
       rightLabel: 'Progress'
     })
 
-    const ganttHeight = ref('600px')
-    const rowHeight = ref(40)
-    const taskbarHeight = ref(20)
-    const gridLines = ref('Both')
-    const clipMode = ref('EllipsisWithTooltip')
-
-    // Computed Properties
+    // Computed properties
     const projectStartDate = computed(() => {
       if (filteredProjects.value.length === 0) return new Date()
       const dates = filteredProjects.value
-        .map(p => new Date(p.ProjectStartDate))
-        .filter(d => !isNaN(d))
+        .map(p => p.StartDate)
+        .filter(d => d)
+        .map(d => new Date(d))
       return dates.length > 0 ? new Date(Math.min(...dates)) : new Date()
     })
 
     const projectEndDate = computed(() => {
       if (filteredProjects.value.length === 0) return new Date()
       const dates = filteredProjects.value
-        .map(p => new Date(p.ProjectEndDate))
-        .filter(d => !isNaN(d))
+        .map(p => p.EndDate)
+        .filter(d => d)
+        .map(d => new Date(d))
       return dates.length > 0 ? new Date(Math.max(...dates)) : new Date()
     })
 
-    const ganttDataSource = computed(() => {
-      return transformToGanttData(filteredProjects.value, viewMode.value)
+    // Transform data for Gantt chart
+    const ganttData = computed(() => {
+      if (viewMode.value === 'projects') {
+        return transformProjectsData()
+      } else {
+        return transformHierarchyData()
+      }
     })
 
-    // Methods
-    const transformToGanttData = (projects, mode = 'projects') => {
-      return projects.map((project, index) => {
-        const baseTask = {
-          TaskID: project.RecId || `proj_${index}`,
-          TaskName: project.ProjectName || 'Unnamed Project',
-          TaskType: 'Project',
-          StartDate: project.ProjectStartDate ? new Date(project.ProjectStartDate) : new Date(),
-          EndDate: project.ProjectEndDate ? new Date(project.ProjectEndDate) : new Date(),
-          Progress: project.CompletionPercent || 0,
-          Priority: project.Priority || 'Medium',
-          Owner: project.Owner || 'Unassigned',
-          Status: project.Status || 'Planning'
-        }
-
-        // Calculate duration in days
-        const start = baseTask.StartDate
-        const end = baseTask.EndDate
-        baseTask.Duration = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)))
-
-        if (mode === 'projects') {
-          // Projects + Milestones mode
-          baseTask.subtasks = transformMilestones(project.milestones || [], project.RecId)
-        } else if (mode === 'full') {
-          // Full hierarchy mode: Projects → Milestones → Tasks
-          baseTask.subtasks = transformMilestonesWithTasks(project.milestones || [], project.RecId)
-        }
-
-        return baseTask
-      })
-    }
-
-    const transformMilestones = (milestones, projectId) => {
-      return milestones.map((milestone, index) => ({
-        TaskID: milestone.RecId || `mile_${projectId}_${index}`,
-        TaskName: milestone.PhaseName || 'Unnamed Milestone',
-        TaskType: 'Milestone',
-        StartDate: milestone.StartDate ? new Date(milestone.StartDate) : new Date(),
-        EndDate: milestone.DueDate ? new Date(milestone.DueDate) : new Date(),
-        Duration: milestone.Duration || calculateDuration(milestone.StartDate, milestone.DueDate),
-        Progress: milestone.CompletionPercent || 0,
-        Priority: milestone.Priority || 'Medium',
-        Owner: milestone.Owner || 'Unassigned',
-        Status: milestone.Status || 'Planning'
+    const transformProjectsData = () => {
+      return filteredProjects.value.map((project, index) => ({
+        TaskID: project.RecId,
+        TaskName: project.ProjectName,
+        StartDate: project.StartDate ? new Date(project.StartDate) : new Date(),
+        EndDate: project.EndDate ? new Date(project.EndDate) : new Date(),
+        Duration: calculateDuration(project.StartDate, project.EndDate),
+        Progress: project.CompletionPercent || 0,
+        Notes: project.Summary || '',
+        ParentID: null,
+        Priority: project.Priority,
+        Status: project.Status,
+        Owner: project.Owner
       }))
     }
 
-    const transformMilestonesWithTasks = (milestones, projectId) => {
-      return milestones.map((milestone, milestoneIndex) => {
-        const milestoneTask = {
-          TaskID: milestone.RecId || `mile_${projectId}_${milestoneIndex}`,
-          TaskName: milestone.PhaseName || 'Unnamed Milestone',
-          TaskType: 'Milestone',
-          StartDate: milestone.StartDate ? new Date(milestone.StartDate) : new Date(),
-          EndDate: milestone.DueDate ? new Date(milestone.DueDate) : new Date(),
-          Duration: milestone.Duration || calculateDuration(milestone.StartDate, milestone.DueDate),
-          Progress: milestone.CompletionPercent || 0,
-          Priority: milestone.Priority || 'Medium',
-          Owner: milestone.Owner || 'Unassigned',
-          Status: milestone.Status || 'Planning'
-        }
+    const transformHierarchyData = () => {
+      const data = []
+      let taskId = 1
 
-        // Add tasks as subtasks of milestones
-        if (milestone.tasks && milestone.tasks.length > 0) {
-          milestoneTask.subtasks = milestone.tasks.map((task, taskIndex) => ({
-            TaskID: task.RecId || `task_${milestone.RecId}_${taskIndex}`,
-            TaskName: task.Subject || 'Unnamed Task',
-            TaskType: 'Task',
-            StartDate: task.StartDate ? new Date(task.StartDate) : new Date(),
-            EndDate: task.DueDate ? new Date(task.DueDate) : new Date(),
-            Duration: task.Duration || calculateDuration(task.StartDate, task.DueDate),
-            Progress: task.CompletionPercent || 0,
-            Priority: task.Priority || 'Medium',
-            Owner: task.AssignedTo || 'Unassigned',
-            Status: task.Status || 'Open'
-          }))
-        }
+      filteredProjects.value.forEach(project => {
+        const projectId = taskId++
+        
+        // Add project
+        data.push({
+          TaskID: projectId,
+          TaskName: project.ProjectName,
+          StartDate: project.StartDate ? new Date(project.StartDate) : new Date(),
+          EndDate: project.EndDate ? new Date(project.EndDate) : new Date(),
+          Duration: calculateDuration(project.StartDate, project.EndDate),
+          Progress: project.CompletionPercent || 0,
+          Notes: project.Summary || '',
+          ParentID: null,
+          Priority: project.Priority,
+          Status: project.Status,
+          Owner: project.Owner,
+          Type: 'Project'
+        })
 
-        return milestoneTask
+        // Add milestones
+        if (project.milestones && project.milestones.length > 0) {
+          project.milestones.forEach(milestone => {
+            const milestoneId = taskId++
+            
+            data.push({
+              TaskID: milestoneId,
+              TaskName: milestone.PhaseName,
+              StartDate: milestone.StartDate ? new Date(milestone.StartDate) : new Date(),
+              EndDate: milestone.EndDate ? new Date(milestone.EndDate) : new Date(),
+              Duration: calculateDuration(milestone.StartDate, milestone.EndDate),
+              Progress: milestone.CompletionPercent || 0,
+              Notes: milestone.Description || '',
+              ParentID: projectId,
+              Priority: milestone.Priority,
+              Status: milestone.Status,
+              Owner: milestone.Owner,
+              Type: 'Milestone'
+            })
+
+            // Add tasks
+            if (milestone.tasks && milestone.tasks.length > 0) {
+              milestone.tasks.forEach(task => {
+                data.push({
+                  TaskID: taskId++,
+                  TaskName: task.Subject,
+                  StartDate: task.StartDate ? new Date(task.StartDate) : new Date(),
+                  EndDate: task.EndDate ? new Date(task.EndDate) : new Date(),
+                  Duration: calculateDuration(task.StartDate, task.EndDate),
+                  Progress: task.CompletionPercent || 0,
+                  Notes: task.Description || '',
+                  ParentID: milestoneId,
+                  Priority: task.Priority,
+                  Status: task.Status,
+                  Owner: task.AssignedTo,
+                  Type: 'Task'
+                })
+              })
+            }
+          })
+        }
       })
+
+      return data
     }
 
     const calculateDuration = (startDate, endDate) => {
       if (!startDate || !endDate) return 1
       const start = new Date(startDate)
       const end = new Date(endDate)
-      return Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)))
+      const diffTime = Math.abs(end - start)
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+      return diffDays || 1
     }
 
+    // Methods
     const setViewMode = (mode) => {
       viewMode.value = mode
-      showToast(t('roadmap.viewModeChanged', { mode: t(`roadmap.${mode}`) }), 'info')
-    }
-
-    const updateTimeline = () => {
-      showToast(t('roadmap.timelineUpdated', { unit: t(`roadmap.${timelineUnit.value.toLowerCase()}`) }), 'info')
-    }
-
-    const zoomIn = () => {
-      if (ganttChart.value && ganttChart.value.ej2Instances) {
-        ganttChart.value.ej2Instances.zoomIn()
-      }
-    }
-
-    const zoomOut = () => {
-      if (ganttChart.value && ganttChart.value.ej2Instances) {
-        ganttChart.value.ej2Instances.zoomOut()
-      }
-    }
-
-    const exportRoadmap = () => {
-      if (ganttChart.value && ganttChart.value.ej2Instances) {
-        const options = {
-          fileName: `project-roadmap-${new Date().toISOString().split('T')[0]}.pdf`,
-          header: {
-            fromTop: 0,
-            height: 130,
-            contents: [
-              {
-                type: 'Text',
-                value: 'Project Roadmap',
-                position: { x: 0, y: 50 },
-                style: { textBrushColor: '#000000', fontSize: 20 }
-              }
-            ]
-          }
+      // nextTick removed since import was removed
+      setTimeout(() => {
+        if (ganttChart.value) {
+          ganttChart.value.refresh()
         }
-        ganttChart.value.ej2Instances.pdfExport(options)
-        showToast(t('actions.exportSuccess'), 'success')
-      }
+      }, 0)
     }
 
     const refreshData = async () => {
       isLoading.value = true
       try {
-        await projectStore.fetchProjects()
+        await Promise.all([
+          projectStore.fetchProjects(),
+          milestoneStore.fetchMilestones(),
+          taskStore.fetchTasks()
+        ])
         showToast(t('actions.refreshSuccess'), 'success')
       } catch (error) {
-        console.error('Failed to refresh roadmap data:', error)
+        console.error('Failed to refresh data:', error)
         showToast(t('actions.refreshError'), 'error')
       } finally {
         isLoading.value = false
@@ -437,88 +412,148 @@ export default {
       router.push('/projects/new')
     }
 
-    // Gantt Event Handlers
-    const onGanttLoad = () => {
-      console.log('Gantt chart loaded')
+    const exportGantt = () => {
+      if (ganttChart.value) {
+        ganttChart.value.excelExport({
+          fileName: 'project-roadmap.xlsx'
+        })
+      }
     }
 
+    // Gantt event handlers
     const onActionBegin = (args) => {
-      console.log('Action begin:', args.requestType)
+      if (args.requestType === 'beforeDelete') {
+        if (!confirm(t('common.confirmDelete'))) {
+          args.cancel = true
+        }
+      }
     }
 
     const onActionComplete = (args) => {
-      console.log('Action complete:', args.requestType)
       if (args.requestType === 'save') {
-        showToast(t('roadmap.taskUpdated'), 'success')
+        showToast(t('actions.saveSuccess'), 'success')
+      } else if (args.requestType === 'delete') {
+        showToast(t('actions.deleteSuccess'), 'success')
       }
     }
 
-    const onTaskbarEdit = (args) => {
+    const onTaskbarEditing = (args) => {
+      // Handle taskbar drag and drop
       console.log('Taskbar editing:', args)
-      // Here you would typically update the backend
     }
 
-    const onRowSelected = (args) => {
-      console.log('Row selected:', args.data)
-      if (args.data && args.data.TaskType === 'Project') {
-        // Navigate to project details or show project info
+    const onToolbarClick = (args) => {
+      if (args.item.id === 'gantt_excelexport') {
+        exportGantt()
+      } else if (args.item.id === 'gantt_pdfexport') {
+        ganttChart.value.pdfExport({
+          fileName: 'project-roadmap.pdf'
+        })
       }
     }
 
-    // Watchers
-    watch(() => viewMode.value, (newMode) => {
-      console.log('View mode changed to:', newMode)
-    })
+    // Context menu handlers
+    const editTask = () => {
+      if (selectedTask.value) {
+        // Navigate to edit page based on task type
+        const task = selectedTask.value
+        if (task.Type === 'Project') {
+          router.push(`/projects/${task.TaskID}/edit`)
+        } else if (task.Type === 'Milestone') {
+          router.push(`/milestones/${task.TaskID}/edit`)
+        } else {
+          router.push(`/tasks/${task.TaskID}/edit`)
+        }
+      }
+      hideContextMenu()
+    }
 
-    watch(() => timelineUnit.value, (newUnit) => {
-      console.log('Timeline unit changed to:', newUnit)
-    })
+    const deleteTask = async () => {
+      if (selectedTask.value && confirm(t('common.confirmDelete'))) {
+        try {
+          const task = selectedTask.value
+          if (task.Type === 'Project') {
+            await projectStore.deleteProject(task.TaskID)
+          } else if (task.Type === 'Milestone') {
+            await milestoneStore.deleteMilestone(task.TaskID)
+          } else {
+            await taskStore.deleteTask(task.TaskID)
+          }
+          showToast(t('actions.deleteSuccess'), 'success')
+        } catch (error) {
+          showToast(t('actions.deleteError'), 'error')
+        }
+      }
+      hideContextMenu()
+    }
+
+    const addSubTask = () => {
+      if (selectedTask.value) {
+        const task = selectedTask.value
+        if (task.Type === 'Project') {
+          router.push(`/projects/${task.TaskID}/milestones/new`)
+        } else if (task.Type === 'Milestone') {
+          router.push(`/milestones/${task.TaskID}/tasks/new`)
+        }
+      }
+      hideContextMenu()
+    }
+
+    const showContextMenuAt = (event, task) => {
+      selectedTask.value = task
+      contextMenuStyle.value = {
+        left: `${event.clientX}px`,
+        top: `${event.clientY}px`
+      }
+      showContextMenu.value = true
+    }
+
+    const hideContextMenu = () => {
+      showContextMenu.value = false
+      selectedTask.value = null
+    }
 
     // Lifecycle
     onMounted(async () => {
-      if (filteredProjects.value.length === 0) {
+      if (projectStore.projects.length === 0) {
         await refreshData()
       }
+
+      // Hide context menu on click outside
+      document.addEventListener('click', hideContextMenu)
     })
 
     return {
-      // Refs
-      ganttChart,
       isLoading,
       viewMode,
-      timelineUnit,
-      
-      // Computed
+      ganttChart,
+      showContextMenu,
+      contextMenuStyle,
+      selectedTask,
       filteredProjects,
-      ganttDataSource,
-      taskSettings,
-      timelineSettings,
+      ganttData,
+      taskFields,
       ganttColumns,
       splitterSettings,
-      labelSettings,
       projectStartDate,
       projectEndDate,
-      ganttHeight,
-      rowHeight,
-      taskbarHeight,
-      gridLines,
-      clipMode,
-      
-      // Methods
+      timelineSettings,
+      editSettings,
+      toolbarOptions,
+      labelSettings,
       setViewMode,
-      updateTimeline,
-      zoomIn,
-      zoomOut,
-      exportRoadmap,
       refreshData,
       createProject,
-      onGanttLoad,
+      exportGantt,
       onActionBegin,
       onActionComplete,
-      onTaskbarEdit,
-      onRowSelected,
-      
-      // Composables
+      onTaskbarEditing,
+      onToolbarClick,
+      editTask,
+      deleteTask,
+      addSubTask,
+      showContextMenuAt,
+      hideContextMenu,
       t
     }
   }
@@ -526,11 +561,12 @@ export default {
 </script>
 
 <style scoped>
+/* Uses global CSS variables and styles from main.css */
 .project-roadmap-view {
-  width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
+  background: var(--mdc-theme-background);
 }
 
 .view-toolbar {
@@ -538,21 +574,42 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 16px 24px;
-  margin-bottom: 16px;
-  gap: 16px;
+  background: var(--mdc-theme-surface);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: var(--mdc-elevation-01);
+  gap: 24px;
 }
 
 .toolbar-left {
   display: flex;
   align-items: center;
   gap: 16px;
+  flex-shrink: 0;
 }
 
-.toolbar-left h2 {
+.view-title {
   margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--mdc-theme-text-primary-on-background);
 }
 
-.view-mode-switcher {
+.project-count {
+  background: var(--mdc-theme-primary);
+  color: var(--mdc-theme-on-primary);
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.toolbar-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.view-mode-toggle {
   display: flex;
   background: rgba(0, 0, 0, 0.04);
   border-radius: 8px;
@@ -560,78 +617,33 @@ export default {
   gap: 2px;
 }
 
-.mode-btn {
+.btn--toggle {
   padding: 8px 16px;
-  border: none;
-  background: none;
   border-radius: 6px;
-  cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  color: rgba(0, 0, 0, 0.6);
+  transition: all 0.2s ease;
+  background: transparent;
+  color: var(--mdc-theme-text-secondary-on-background);
+  border: none;
+  cursor: pointer;
 }
 
-.mode-btn.active {
-  background: white;
-  color: var(--mdc-theme-primary, #1976d2);
+.btn--toggle.active {
+  background: var(--mdc-theme-primary);
+  color: var(--mdc-theme-on-primary);
   box-shadow: var(--mdc-elevation-01);
 }
 
-.mode-btn:hover:not(.active) {
+.btn--toggle:hover:not(.active) {
   background: rgba(0, 0, 0, 0.04);
-  color: rgba(0, 0, 0, 0.87);
+  color: var(--mdc-theme-text-primary-on-background);
 }
 
 .toolbar-actions {
   display: flex;
-  gap: 16px;
-  align-items: center;
-}
-
-.zoom-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.timeline-selector {
-  padding: 8px 12px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 4px;
-  background: white;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.timeline-selector:focus {
-  outline: none;
-  border-color: var(--mdc-theme-primary, #1976d2);
-}
-
-.action-buttons {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.mdc-icon-button {
-  width: 40px;
-  height: 40px;
-  border: none;
-  background: none;
-  color: rgba(0, 0, 0, 0.6);
-  cursor: pointer;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.mdc-icon-button:hover {
-  background: rgba(0, 0, 0, 0.04);
-  color: rgba(0, 0, 0, 0.87);
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .view-content {
@@ -641,38 +653,89 @@ export default {
   flex-direction: column;
 }
 
+/* Loading State */
 .loading-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 48px;
-  gap: 16px;
-  flex: 1;
+  height: 200px;
+  color: var(--mdc-theme-text-secondary-on-background);
 }
 
 .loading-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid rgba(0, 0, 0, 0.1);
-  border-top: 3px solid var(--mdc-theme-primary, #1976d2);
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: var(--mdc-theme-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  margin-bottom: 16px;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  to { transform: rotate(360deg); }
 }
 
+.loading-text {
+  margin: 0;
+  color: var(--mdc-theme-text-secondary-on-background);
+}
+
+/* Gantt Container */
 .gantt-container {
   flex: 1;
-  background: white;
+  background: var(--mdc-theme-surface);
   border-radius: 8px;
-  overflow: hidden;
+  margin: 16px 24px;
   box-shadow: var(--mdc-elevation-01);
+  overflow: hidden;
 }
 
+/* Syncfusion Gantt Customizations */
+.gantt-container :deep(.e-gantt) {
+  font-family: 'Roboto', sans-serif;
+}
+
+.gantt-container :deep(.e-gantt .e-header-cell-label) {
+  font-weight: 600;
+  color: var(--mdc-theme-text-primary-on-background);
+}
+
+.gantt-container :deep(.e-gantt .e-row) {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.gantt-container :deep(.e-gantt .e-row:hover) {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.gantt-container :deep(.e-gantt .e-taskbar-main) {
+  border-radius: 4px;
+}
+
+.gantt-container :deep(.e-gantt .e-taskbar-main.e-project) {
+  background: var(--mdc-theme-primary);
+}
+
+.gantt-container :deep(.e-gantt .e-taskbar-main.e-parent) {
+  background: var(--mdc-theme-secondary);
+}
+
+.gantt-container :deep(.e-gantt .e-taskbar-main.e-child) {
+  background: #4caf50;
+}
+
+.gantt-container :deep(.e-gantt .e-milestone-top),
+.gantt-container :deep(.e-gantt .e-milestone-bottom) {
+  border-color: var(--mdc-theme-primary);
+}
+
+.gantt-container :deep(.e-gantt .e-progress-bar) {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Empty State */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -680,120 +743,134 @@ export default {
   justify-content: center;
   padding: 48px 24px;
   text-align: center;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--mdc-theme-text-secondary-on-background);
   flex: 1;
 }
 
 .empty-icon {
+  opacity: 0.5;
   margin-bottom: 24px;
-  opacity: 0.4;
 }
 
-.empty-state h3 {
+.empty-title {
   margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--mdc-theme-text-primary-on-background);
 }
 
-.empty-state p {
+.empty-description {
   margin: 0 0 24px 0;
-  max-width: 400px;
+  color: var(--mdc-theme-text-secondary-on-background);
 }
 
-/* Gantt Chart Customization */
-:deep(.e-gantt) {
+/* Context Menu */
+.gantt-context-menu {
+  position: fixed;
+  background: var(--mdc-theme-surface);
   border-radius: 8px;
+  box-shadow: var(--mdc-elevation-04);
+  padding: 8px 0;
+  z-index: 1000;
+  min-width: 150px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
 }
 
-:deep(.e-gantt .e-header-cell-div) {
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.87);
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--mdc-theme-text-primary-on-background);
+  transition: background-color 0.2s ease;
 }
 
-:deep(.e-gantt .e-rowcell) {
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
+.context-menu-item:hover {
+  background: rgba(0, 0, 0, 0.04);
 }
 
-:deep(.e-gantt .e-chart-row) {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-:deep(.e-gantt .e-taskbar-main-container .e-gantt-parent-taskbar) {
-  background: linear-gradient(90deg, var(--mdc-theme-primary, #1976d2), #42a5f5);
-  border-radius: 4px;
-}
-
-:deep(.e-gantt .e-taskbar-main-container .e-gantt-child-taskbar) {
-  background: linear-gradient(90deg, #4caf50, #66bb6a);
-  border-radius: 4px;
-}
-
-:deep(.e-gantt .e-taskbar-main-container .e-gantt-milestone) {
-  color: #ff9800;
-}
-
-:deep(.e-gantt .e-timeline-header-container) {
-  background: #fafafa;
-  border-bottom: 2px solid rgba(0, 0, 0, 0.12);
+.context-menu-item svg {
+  opacity: 0.7;
 }
 
 /* Responsive Design */
 @media (max-width: 1024px) {
   .view-toolbar {
     flex-direction: column;
+    gap: 16px;
     align-items: stretch;
-    gap: 12px;
   }
 
-  .toolbar-left {
-    justify-content: center;
-  }
-
+  .toolbar-left,
+  .toolbar-center,
   .toolbar-actions {
     justify-content: center;
-    flex-wrap: wrap;
   }
 
-  .gantt-container {
-    overflow-x: auto;
+  .view-mode-toggle {
+    align-self: center;
   }
 }
 
 @media (max-width: 768px) {
-  .view-mode-switcher {
-    width: 100%;
+  .gantt-container {
+    margin: 8px 16px;
   }
 
-  .mode-btn {
-    flex: 1;
-    text-align: center;
-  }
-
-  .zoom-controls {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .action-buttons {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .gantt-height {
-    height: 500px;
-  }
-}
-
-@media (max-width: 480px) {
   .view-toolbar {
     padding: 12px 16px;
   }
 
   .toolbar-actions {
-    flex-direction: column;
-    gap: 8px;
+    flex-wrap: wrap;
   }
 
-  .gantt-height {
-    height: 400px;
+  .btn span {
+    display: none;
+  }
+
+  .btn svg {
+    margin: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .gantt-container {
+    margin: 8px;
+    border-radius: 4px;
+  }
+
+  .view-title {
+    font-size: 20px;
+  }
+
+  .project-count {
+    font-size: 12px;
+    padding: 2px 8px;
+  }
+
+  .btn--toggle {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .view-toolbar {
+    display: none;
+  }
+
+  .gantt-container {
+    margin: 0;
+    box-shadow: none;
+    border: 1px solid #ccc;
   }
 }
 </style>

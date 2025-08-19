@@ -1,12 +1,12 @@
+// src/router/index.js - Updated Router without ProjectsView
 import { createRouter, createWebHistory } from 'vue-router'
 import MainView from '@/views/MainView.vue'
-import ProjectsView from '@/views/ProjectsView.vue'
 import NotFound from '@/views/NotFound.vue'
 
 const routes = [
   {
     path: '/',
-    redirect: '/projects'
+    redirect: '/projects/list'
   },
   {
     path: '/projects',
@@ -14,13 +14,44 @@ const routes = [
     children: [
       {
         path: '',
-        component: ProjectsView,
-        name: 'Projects',
+        redirect: '/projects/list'
+      },
+      {
+        path: 'list',
+        component: () => import('@/views/projects/ProjectListView.vue'),
+        name: 'ProjectsList',
         meta: {
-          title: 'Projects',
+          title: 'Projects - List View',
+          view: 'list',
           breadcrumb: [
             { name: 'Home', path: '/' },
-            { name: 'Projects', path: '/projects' }
+            { name: 'Projects', path: '/projects/list' }
+          ]
+        }
+      },
+      {
+        path: 'cards',
+        component: () => import('@/views/projects/ProjectCardView.vue'),
+        name: 'ProjectsCards',
+        meta: {
+          title: 'Projects - Card View',
+          view: 'card',
+          breadcrumb: [
+            { name: 'Home', path: '/' },
+            { name: 'Projects', path: '/projects/cards' }
+          ]
+        }
+      },
+      {
+        path: 'roadmap',
+        component: () => import('@/views/projects/ProjectRoadmapView.vue'),
+        name: 'ProjectsRoadmap',
+        meta: {
+          title: 'Projects - Roadmap View',
+          view: 'roadmap',
+          breadcrumb: [
+            { name: 'Home', path: '/' },
+            { name: 'Projects', path: '/projects/roadmap' }
           ]
         }
       },
@@ -32,7 +63,7 @@ const routes = [
           title: 'Project Details',
           breadcrumb: [
             { name: 'Home', path: '/' },
-            { name: 'Projects', path: '/projects' },
+            { name: 'Projects', path: '/projects/list' },
             { name: 'Details', path: '' }
           ]
         }
@@ -46,7 +77,7 @@ const routes = [
           requiresAuth: true,
           breadcrumb: [
             { name: 'Home', path: '/' },
-            { name: 'Projects', path: '/projects' },
+            { name: 'Projects', path: '/projects/list' },
             { name: 'Edit', path: '' }
           ]
         }
@@ -60,7 +91,7 @@ const routes = [
           requiresAuth: true,
           breadcrumb: [
             { name: 'Home', path: '/' },
-            { name: 'Projects', path: '/projects' },
+            { name: 'Projects', path: '/projects/list' },
             { name: 'Create', path: '' }
           ]
         }
