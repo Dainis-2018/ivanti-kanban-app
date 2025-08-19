@@ -53,9 +53,13 @@ export default defineConfig(({ command, mode }) => {
       
       rollupOptions: {
         output: {
+          chunkFileNames: 'assets/js/[name]-[hash].js',
+          entryFileNames: 'assets/js/[name]-[hash].js',
+          assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
           manualChunks: {
             vendor: ['vue', 'vue-router', 'pinia', 'axios'],
             syncfusion: [
+              '@syncfusion/ej2-vue-gantt',
               '@syncfusion/ej2-vue-kanban',
               '@syncfusion/ej2-vue-richtexteditor',
               '@syncfusion/ej2-vue-calendars',
@@ -85,8 +89,28 @@ export default defineConfig(({ command, mode }) => {
         'vue-router', 
         'pinia',
         'axios',
-        'vue-toastification'
+        'vue-toastification',
+        '@syncfusion/ej2-vue-gantt',
+        '@syncfusion/ej2-vue-kanban',
+        '@syncfusion/ej2-vue-grids',
+        '@syncfusion/ej2-vue-richtexteditor',
+        '@syncfusion/ej2-vue-buttons',
+        '@syncfusion/ej2-vue-calendars',
+        '@syncfusion/ej2-vue-dropdowns',
+        '@syncfusion/ej2-vue-inputs',
+        '@syncfusion/ej2-vue-navigations',
+        '@syncfusion/ej2-vue-popups',
+        '@syncfusion/ej2-vue-layouts',
+        '@syncfusion/ej2-vue-notifications',
+        '@syncfusion/ej2-vue-schedule'
       ]
+    },
+
+    // Define global constants
+    define: {
+      __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
+      __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
+      __DEV__: process.env.NODE_ENV === 'development'
     }
   }
 })

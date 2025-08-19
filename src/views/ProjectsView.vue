@@ -1,619 +1,305 @@
-<!-- views/ProjectsView.vue - Fixed to work with existing implementation -->
 <template>
   <div class="projects-view">
-    <!-- Breadcrumbs Navigation (only show when deeper than projects list) -->
-    <div v-if="breadcrumbs.length > 1" class="breadcrumbs">
-      <span 
-        v-for="(crumb, index) in breadcrumbs" 
-        :key="crumb.id"
-        @click="navigateTo(crumb)"
-        class="breadcrumb"
-      >
-        {{ crumb.name }}
-        <span v-if="index < breadcrumbs.length - 1"> › </span>
-      </span>
+    <!-- TOP BAR WITH VIEW SWITCHER -->
+    <div class="top-bar mdc-card">
+      <div class="top-bar-left">
+        <h1 class="mdc-typography--headline5">{{ t('projects.title') }}</h1>
+        <div class="view-switcher">
+          <button 
+            v-for="view in availableViews" 
+            :key="view.name"
+            class="view-btn" 
+            :class="{ active: currentView === view.name }"
+            @click="switchView(view.name)"
+            :title="view.title"
+          >
+            <component :is="view.icon" />
+            <span>{{ view.label }}</span>
+          </button>
+        </div>
+      </div>
+      
+      <div class="top-bar-right">
+        <!-- SEARCH AND FILTERS -->
+        <div class="search-filter-container">
+          <div class="search-field">
+            <input
+              v-model="searchQuery"
+              type="text"
+              :placeholder="t('app.search')"
+              class="search-input"
+            >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="search-icon">
+              <path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/>
+            </svg>
+          </div>
+          
+          <div class="filter-controls">
+            <select v-model="statusFilter" class="filter-select">
+              <option value="">{{ t('filters.allStatuses') }}</option>
+              <option v-for="status in availableStatuses" :key="status" :value="status">
+                {{ t(`projects.statusValues.${status.toLowerCase().replace(' ', '')}`) }}
+              </option>
+            </select>
+            
+            <select v-model="ownerFilter" class="filter-select">
+              <option value="">{{ t('filters.allOwners') }}</option>
+              <option v-for="owner in availableOwners" :key="owner" :value="owner">
+                {{ owner }}
+              </option>
+            </select>
+            
+            <button 
+              class="filter-clear-btn"
+              @click="clearFilters"
+              v-if="hasActiveFilters"
+              :title="t('filters.clear')"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="view-content">
-      <!-- Loading State -->
-      <div v-if="isLoading" class="loading-state">
-        <div class="mdc-circular-progress"></div>
-        <p class="mdc-typography--body1">Loading projects...</p>
-      </div>
-
-      <!-- Error State -->
-      <div v-else-if="error" class="error-state">
-        <h3 class="mdc-typography--headline6 text-error">Error</h3>
-        <p class="mdc-typography--body1">{{ error }}</p>
-        <button class="mdc-button mdc-button--raised" @click="refreshData">Retry</button>
-      </div>
-
-      <!-- PROJECT LIST VIEW with Syncfusion Grid -->
-      <div v-else-if="showList" class="list-view">
-        <div class="view-toolbar mdc-card">
-          <h2 class="mdc-typography--headline6">Projects ({{ filteredProjects.length }})</h2>
-          <div class="toolbar-actions">
-            <button 
-              class="mdc-button mdc-button--outlined refresh-btn" 
-              @click="refreshGrid" 
-              :disabled="isLoading"
-              :title="t('actions.refresh')"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
-              </svg>
-            </button>
-            <button class="mdc-button mdc-button--raised create-btn" @click="createProject" :title="t('actions.createProject')">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-        
-        <!-- Syncfusion Grid Component -->
-        <ejs-grid
-          ref="projectGrid"
-          :dataSource="filteredProjects"
-          :allowPaging="true"
-          :allowSorting="true"
-          :allowFiltering="false"
-          :allowSelection="true"
-          :allowResizing="true"
-          :allowReordering="true"
-          :pageSettings="pageSettings"
-          :filterSettings="filterSettings"
-          :sortSettings="sortSettings"
-          :selectionSettings="selectionSettings"
-          :searchSettings="searchSettings"
-          @rowSelected="onRowSelected"
-          @rowDeselected="onRowDeselected"
-          @actionComplete="onActionComplete"
-          height="auto"
-          class="project-grid"
-        >
-          <e-columns>
-            <e-column 
-              type="checkbox" 
-              width="50"
-            />
-            <e-column
-              field="ProjectNumber"
-              headerText="ID"
-              width="100"
-              textAlign="Center"
-            />
-            <e-column
-              field="ProjectName"
-              :headerText="t('projects.name')"
-              width="300"
-              :template="'projectNameTemplate'"
-            />
-            <e-column
-              field="Status"
-              :headerText="t('projects.status')"
-              width="120"
-              :template="'statusTemplate'"
-            />
-            <e-column
-              field="Priority"
-              headerText="Priority"
-              width="100"
-              :template="'priorityTemplate'"
-            />
-            <e-column
-              field="CompletionPercent"
-              :headerText="t('projects.progress')"
-              width="120"
-              :template="'progressTemplate'"
-            />
-            <e-column
-              field="Owner"
-              :headerText="t('projects.owner')"
-              width="150"
-            />
-            <e-column
-              field="ProjectStartDate"
-              :headerText="t('projects.startDate')"
-              width="120"
-              type="date"
-              format="yMd"
-            />
-            <e-column
-              field="ProjectEndDate"
-              :headerText="t('projects.endDate')"
-              width="120"
-              type="date"
-              format="yMd"
-            />
-          </e-columns>
-
-          <!-- Grid Templates -->
-          <template #projectNameTemplate="{ data }">
-            <div class="project-name-cell">
-              <div 
-                class="project-title mdc-typography--subtitle2 text-primary" 
-                @click="selectProject(data)"
-              >
-                {{ data.ProjectName }}
-              </div>
-            </div>
-          </template>
-
-          <template #statusTemplate="{ data }">
-            <span class="status-chip" :class="`status-chip--${getStatusClass(data.Status)}`">
-              {{ data.Status }}
-            </span>
-          </template>
-
-          <template #priorityTemplate="{ data }">
-            <span class="priority-chip" :class="`priority-chip--${getPriorityClass(data.Priority)}`">
-              {{ data.Priority || 'Normal' }}
-            </span>
-          </template>
-
-          <template #progressTemplate="{ data }">
-            <div class="progress-container">
-              <div class="progress-linear">
-                <div 
-                  class="progress-linear__bar" 
-                  :style="{ transform: `scaleX(${(data.CompletionPercent || 0) / 100})` }"
-                ></div>
-              </div>
-              <span class="mdc-typography--caption progress-text">{{ data.CompletionPercent || 0 }}%</span>
-            </div>
-          </template>
-        </ejs-grid>
-      </div>
-
-      <!-- PROJECT CARD VIEW -->
-      <div v-else-if="showCard" class="card-view">
-        <div class="view-toolbar mdc-card">
-          <h2 class="mdc-typography--headline6">Projects ({{ filteredProjects.length }})</h2>
-          <div class="toolbar-actions">
-            <button 
-              class="mdc-button mdc-button--outlined refresh-btn" 
-              @click="refreshData" 
-              :disabled="isLoading"
-              :title="t('actions.refresh')"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
-              </svg>
-            </button>
-            <button class="mdc-button mdc-button--raised create-btn" @click="createProject" :title="t('actions.createProject')">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-        
-        <div class="projects-cards">
-          <div
-            v-for="project in filteredProjects"
-            :key="project.RecId"
-            class="mdc-card project-card"
-            @click="selectProject(project)"
-          >
-            <div class="card-header">
-              <h3 class="mdc-typography--headline6">{{ project.ProjectName }}</h3>
-              <span class="status-chip" :class="`status-chip--${getStatusClass(project.Status)}`">
-                {{ project.Status }}
-              </span>
-            </div>
-            <div class="card-body">
-              <p class="mdc-typography--body2 project-description">{{ project.Summary }}</p>
-              <div class="project-meta">
-                <div class="meta-item">
-                  <span class="mdc-typography--caption text-secondary">Owner:</span>
-                  <span class="mdc-typography--body2">{{ project.Owner }}</span>
-                </div>
-                <div class="meta-item">
-                  <span class="mdc-typography--caption text-secondary">Project #:</span>
-                  <span class="mdc-typography--body2">{{ project.ProjectNumber }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="card-footer">
-              <span class="mdc-typography--caption date-range">
-                {{ formatDate(project.ProjectStartDate) }} - {{ formatDate(project.ProjectEndDate) }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- PROJECT ROADMAP VIEW -->
-      <div v-else-if="showRoadmap" class="roadmap-view">
-        <div class="view-toolbar mdc-card">
-          <h2 class="mdc-typography--headline6">Project Roadmap</h2>
-          <div class="toolbar-actions">
-            <button 
-              class="mdc-button mdc-button--outlined refresh-btn" 
-              @click="refreshData" 
-              :disabled="isLoading"
-              :title="t('actions.refresh')"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
-              </svg>
-            </button>
-            <button class="mdc-button mdc-button--raised create-btn" @click="createProject" :title="t('actions.createProject')">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div class="roadmap-timeline">
-          <div
-            v-for="project in filteredProjects"
-            :key="project.RecId"
-            class="timeline-item"
-            @click="selectProject(project)"
-          >
-            <div class="timeline-marker"></div>
-            <div class="mdc-card timeline-content">
-              <div class="card-header">
-                <h4 class="mdc-typography--subtitle1">{{ project.ProjectName }}</h4>
-                <span class="status-chip" :class="`status-chip--${getStatusClass(project.Status)}`">
-                  {{ project.Status }}
-                </span>
-              </div>
-              <p class="mdc-typography--body2">{{ project.Summary }}</p>
-              <div class="timeline-meta">
-                <span class="mdc-typography--caption">{{ project.Owner }}</span>
-                <span class="mdc-typography--caption">
-                  {{ formatDate(project.ProjectStartDate) }} - {{ formatDate(project.ProjectEndDate) }}
-                </span>
-              </div>
-
-              <!-- Show milestones if available -->
-              <div v-if="project.milestones && project.milestones.length" class="milestones-list">
-                <div
-                  v-for="milestone in project.milestones"
-                  :key="milestone.RecId"
-                  class="mdc-card milestone-item"
-                  @click.stop="selectMilestone(milestone)"
-                >
-                  <h5 class="mdc-typography--subtitle2">{{ milestone.PhaseName }}</h5>
-                  <div class="milestone-meta">
-                    <span class="mdc-typography--caption">{{ milestone.Status }}</span>
-                    <span class="mdc-typography--caption">{{ formatDate(milestone.DueDate) }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Empty State -->
-      <div v-else class="empty-state">
-        <h3 class="mdc-typography--headline6">No projects found</h3>
-        <p class="mdc-typography--body1">Get started by creating your first project.</p>
-        <button class="mdc-button mdc-button--raised" @click="createProject">
-          ➕ Create Project
-        </button>
-      </div>
+    <!-- MAIN CONTENT AREA -->
+    <div class="main-content">
+      <KeepAlive>
+        <component 
+          :is="currentViewComponent" 
+          :key="currentView"
+        />
+      </KeepAlive>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAppStore } from '@/stores/appStore'
+import { ref, computed, onMounted, provide, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useProjectStore } from '@/stores/projectStore'
 import { useMilestoneStore } from '@/stores/milestoneStore'
+import { useTaskStore } from '@/stores/taskStore'
 import { useLocalization } from '@/composables/useLocalization'
 import { useToast } from '@/composables/useToast'
 
+// Import view components
+import ProjectListView from './projects/ProjectListView.vue'
+import ProjectCardView from './projects/ProjectCardView.vue'
+import ProjectRoadmapView from './projects/ProjectRoadmapView.vue'
+
+// Icon components for view switcher
+const ListIcon = {
+  template: `
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M3,5H21V7H3V5M3,13V11H21V13H3M3,19V17H21V19H3Z"/>
+    </svg>
+  `
+}
+
+const CardIcon = {
+  template: `
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M4,4H10V10H4V4M20,4V10H14V4H20M14,15H16V13H14V11H16V13H18V11H20V13H18V15H20V18H18V20H16V18H13V20H11V16H14V15M16,15V18H18V15H16M4,20V14H10V20H4M6,16V18H8V16H6M4,12V11H10V12H4M14,7V9H18V7H14M6,6V8H8V6H6Z"/>
+    </svg>
+  `
+}
+
+const RoadmapIcon = {
+  template: `
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M3,3H21V5H19V19A2,2 0 0,1 17,21H7A2,2 0 0,1 5,19V5H3V3M7,5V19H17V5H7M9,7H15V9H9V7M9,11H15V13H9V11M9,15H15V17H9V15Z"/>
+    </svg>
+  `
+}
+
 export default {
   name: 'ProjectsView',
-  props: {
-    searchQuery: String,
-    activeFilters: Object,
-    currentView: String
+  components: {
+    ProjectListView,
+    ProjectCardView,
+    ProjectRoadmapView,
+    ListIcon,
+    CardIcon,
+    RoadmapIcon
   },
-  setup(props) {
+  setup() {
     const router = useRouter()
-    const appStore = useAppStore()
+    const route = useRoute()
     const projectStore = useProjectStore()
     const milestoneStore = useMilestoneStore()
+    const taskStore = useTaskStore()
     const { t } = useLocalization()
-    const { showToast, showError } = useToast()
+    const { showToast } = useToast()
 
-    // State
-    const projectGrid = ref(null)
-    const selectedProject = ref(null)
-    const selectedMilestone = ref(null)
-    const milestones = ref([])
+    // Reactive state
+    const currentView = ref('list')
+    const searchQuery = ref('')
+    const statusFilter = ref('')
+    const ownerFilter = ref('')
 
-    // Computed properties - Fix the main issue by creating filteredProjects locally
-    const isLoading = computed(() => projectStore.isLoading || milestoneStore.isLoading)
-    const error = computed(() => projectStore.error || milestoneStore.error)
-    const currentView = computed(() => appStore.currentView || 'list')
-    
-    // Create filteredProjects computed property that works with your existing store structure
+    // Available views configuration
+    const availableViews = computed(() => [
+      {
+        name: 'list',
+        label: t('views.list'),
+        title: t('views.listTooltip'),
+        icon: 'ListIcon',
+        component: 'ProjectListView'
+      },
+      {
+        name: 'cards',
+        label: t('views.card'),
+        title: t('views.cardTooltip'),
+        icon: 'CardIcon',
+        component: 'ProjectCardView'
+      },
+      {
+        name: 'roadmap',
+        label: t('views.roadmap'),
+        title: t('views.roadmapTooltip'),
+        icon: 'RoadmapIcon',
+        component: 'ProjectRoadmapView'
+      }
+    ])
+
+    // Current view component
+    const currentViewComponent = computed(() => {
+      const view = availableViews.value.find(v => v.name === currentView.value)
+      return view ? view.component : 'ProjectListView'
+    })
+
+    // Filter options
+    const availableStatuses = computed(() => {
+      const statuses = new Set()
+      projectStore.projects.forEach(project => {
+        if (project.Status) {
+          statuses.add(project.Status)
+        }
+      })
+      return Array.from(statuses).sort()
+    })
+
+    const availableOwners = computed(() => {
+      const owners = new Set()
+      projectStore.projects.forEach(project => {
+        if (project.Owner) {
+          owners.add(project.Owner)
+        }
+      })
+      return Array.from(owners).sort()
+    })
+
+    // Filtered projects
     const filteredProjects = computed(() => {
-      // Use the projects array from your existing store
-      let projects = projectStore.projects || []
-      
-      // Apply search filter from props or appStore
-      const searchQuery = props.searchQuery || appStore.searchQuery
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase()
+      let projects = projectStore.projects
+
+      // Apply search filter
+      if (searchQuery.value.trim()) {
+        const query = searchQuery.value.toLowerCase().trim()
         projects = projects.filter(project =>
-          project.ProjectName?.toLowerCase().includes(query) ||
-          project.Summary?.toLowerCase().includes(query) ||
-          project.Owner?.toLowerCase().includes(query) ||
-          project.ProjectNumber?.toString().includes(query) ||
-          project.RecId?.toString().includes(query)
+          (project.ProjectName && project.ProjectName.toLowerCase().includes(query)) ||
+          (project.Summary && project.Summary.toLowerCase().includes(query)) ||
+          (project.ProjectNumber && project.ProjectNumber.toLowerCase().includes(query)) ||
+          (project.Owner && project.Owner.toLowerCase().includes(query))
         )
       }
-      
-      // Apply filters from props or appStore
-      const filters = props.activeFilters || appStore.activeFilters || {}
-      
-      if (filters.status && filters.status.length > 0) {
-        projects = projects.filter(project => filters.status.includes(project.Status))
+
+      // Apply status filter
+      if (statusFilter.value) {
+        projects = projects.filter(project => project.Status === statusFilter.value)
       }
-      
-      if (filters.owner && filters.owner.length > 0) {
-        projects = projects.filter(project => filters.owner.includes(project.Owner))
+
+      // Apply owner filter
+      if (ownerFilter.value) {
+        projects = projects.filter(project => project.Owner === ownerFilter.value)
       }
-      
-      if (filters.priority && filters.priority.length > 0) {
-        projects = projects.filter(project => filters.priority.includes(project.Priority))
-      }
-      
+
       return projects
     })
 
-    const showList = computed(() => currentView.value === 'list')
-    const showCard = computed(() => currentView.value === 'card')
-    const showRoadmap = computed(() => currentView.value === 'roadmap')
-
-    const breadcrumbs = computed(() => {
-      const crumbs = [{ id: 'projects', name: 'Projects' }]
-      
-      if (selectedProject.value) {
-        crumbs.push({
-          id: selectedProject.value.RecId,
-          name: selectedProject.value.ProjectName,
-          type: 'project'
-        })
-      }
-      
-      if (selectedMilestone.value) {
-        crumbs.push({
-          id: selectedMilestone.value.RecId,
-          name: selectedMilestone.value.PhaseName,
-          type: 'milestone'
-        })
-      }
-      
-      return crumbs
+    // Check if filters are active
+    const hasActiveFilters = computed(() => {
+      return searchQuery.value.trim() || statusFilter.value || ownerFilter.value
     })
-
-    // Grid Configuration
-    const pageSettings = {
-      pageSize: 20,
-      pageSizes: [10, 20, 50, 100]
-    }
-
-    const filterSettings = {
-      type: 'FilterBar'
-    }
-
-    const sortSettings = {
-      columns: [{ field: 'ProjectName', direction: 'Ascending' }]
-    }
-
-    const selectionSettings = {
-      mode: 'Row',
-      type: 'Single'
-    }
-
-    const searchSettings = {
-      fields: ['ProjectName', 'Summary', 'Owner'],
-      operator: 'contains',
-      key: '',
-      ignoreCase: true
-    }
 
     // Methods
-    const formatDate = (date) => {
-      if (!date) return 'N/A'
-      return new Date(date).toLocaleDateString()
-    }
-
-    const getStatusClass = (status) => {
-      switch (status?.toLowerCase()) {
-        case 'active':
-        case 'in progress':
-          return 'active'
-        case 'planning':
-        case 'pending':
-          return 'planning'
-        case 'completed':
-        case 'done':
-          return 'completed'
-        case 'cancelled':
-        case 'on hold':
-          return 'cancelled'
-        default:
-          return 'default'
-      }
-    }
-
-    const getPriorityClass = (priority) => {
-      switch (priority?.toLowerCase()) {
-        case 'critical':
-        case 'urgent':
-          return 'critical'
-        case 'high':
-          return 'high'
-        case 'medium':
-        case 'normal':
-          return 'medium'
-        case 'low':
-          return 'low'
-        default:
-          return 'medium'
-      }
-    }
-
-    const selectProject = async (project) => {
-      try {
-        selectedProject.value = project
-        selectedMilestone.value = null
-        appStore.setSelectedProject(project)
+    const switchView = (viewName) => {
+      if (currentView.value !== viewName) {
+        currentView.value = viewName
         
-        // Load milestones using your existing store method
-        await milestoneStore.fetchMilestonesByProject(project.RecId)
-        milestones.value = milestoneStore.milestones
+        // Update URL without triggering navigation
+        router.replace({ 
+          path: route.path, 
+          query: { ...route.query, view: viewName } 
+        })
         
-        // Navigate to project detail route using RecId
-        router.push(`/projects/${project.RecId}`)
-      } catch (err) {
-        showError('Failed to load project details')
+        showToast(t('views.switched', { view: t(`views.${viewName}`) }), 'info')
       }
     }
 
-    const selectMilestone = async (milestone) => {
+    const clearFilters = () => {
+      searchQuery.value = ''
+      statusFilter.value = ''
+      ownerFilter.value = ''
+      showToast(t('filters.cleared'), 'info')
+    }
+
+    const loadInitialData = async () => {
       try {
-        selectedMilestone.value = milestone
-        appStore.setSelectedMilestone(milestone)
-        router.push(`/projects/${selectedProject.value.RecId}/milestones/${milestone.RecId}`)
-      } catch (err) {
-        showError('Failed to load milestone details')
+        await Promise.all([
+          projectStore.fetchProjects(),
+          milestoneStore.fetchMilestones()
+        ])
+      } catch (error) {
+        console.error('Failed to load initial data:', error)
+        showToast(t('app.loadError'), 'error')
       }
     }
 
-    const navigateTo = (crumb) => {
-      if (crumb.id === 'projects') {
-        selectedProject.value = null
-        selectedMilestone.value = null
-        appStore.setSelectedProject(null)
-        appStore.setSelectedMilestone(null)
-        router.push('/projects')
-      } else if (crumb.type === 'project') {
-        selectedMilestone.value = null
-        appStore.setSelectedMilestone(null)
-        router.push(`/projects/${crumb.id}`)
-      } else if (crumb.type === 'milestone') {
-        router.push(`/projects/${selectedProject.value.RecId}/milestones/${crumb.id}`)
+    // Provide filteredProjects to child components
+    provide('filteredProjects', filteredProjects)
+
+    // Watchers
+    watch(() => route.query.view, (newView) => {
+      if (newView && availableViews.value.some(v => v.name === newView)) {
+        currentView.value = newView
       }
-    }
+    }, { immediate: true })
 
-    const loadData = async () => {
-      try {
-        // Use your existing store method
-        await projectStore.fetchProjects()
-      } catch (err) {
-        showError('Failed to load projects')
-      }
-    }
-
-    const refreshData = async () => {
-      await loadData()
-    }
-
-    const refreshGrid = async () => {
-      // Use your existing store method
-      await projectStore.refreshProjects()
-      if (projectGrid.value) {
-        projectGrid.value.refresh()
-      }
-    }
-
-    const createProject = () => {
-      router.push('/projects/new')
-    }
-
-    const createMilestone = () => {
-      if (selectedProject.value) {
-        router.push(`/projects/${selectedProject.value.RecId}/milestones/new`)
-      }
-    }
-
-    // Grid event handlers
-    const onRowSelected = (args) => {
-      // Handle row selection if needed
-    }
-
-    const onRowDeselected = (args) => {
-      // Handle row deselection if needed
-    }
-
-    const onActionComplete = (args) => {
-      // Handle grid actions completion
-      if (args.requestType === 'refresh') {
-        // Grid refreshed
-      }
-    }
-
-    // Lifecycle hooks
+    // Lifecycle
     onMounted(async () => {
-      if (!projectStore.projects || projectStore.projects.length === 0) {
-        await loadData()
+      // Set initial view from route query
+      if (route.query.view && availableViews.value.some(v => v.name === route.query.view)) {
+        currentView.value = route.query.view
       }
+
+      // Load initial data
+      await loadInitialData()
     })
 
-    // Watch for view changes
-    watch(currentView, (newView) => {
-      // Handle view-specific logic if needed
-    })
-
-    // Return reactive references and methods
     return {
-      // Refs
-      projectGrid,
-      selectedProject,
-      selectedMilestone,
-      milestones,
+      // Reactive state
+      currentView,
+      searchQuery,
+      statusFilter,
+      ownerFilter,
       
       // Computed
-      isLoading,
-      error,
-      currentView,
-      filteredProjects, // This is the key fix - create it locally instead of relying on store
-      showList,
-      showCard,
-      showRoadmap,
-      breadcrumbs,
-      
-      // Grid Configuration
-      pageSettings,
-      filterSettings,
-      sortSettings,
-      selectionSettings,
-      searchSettings,
+      availableViews,
+      currentViewComponent,
+      availableStatuses,
+      availableOwners,
+      filteredProjects,
+      hasActiveFilters,
       
       // Methods
-      formatDate,
-      getStatusClass,
-      getPriorityClass,
-      selectProject,
-      selectMilestone,
-      navigateTo,
-      loadData,
-      refreshData,
-      refreshGrid,
-      createProject,
-      createMilestone,
+      switchView,
+      clearFilters,
       
-      // Grid Methods
-      onRowSelected,
-      onRowDeselected,
-      onActionComplete,
-      
-      // Localization
+      // Composables
       t
     }
   }
@@ -621,401 +307,303 @@ export default {
 </script>
 
 <style scoped>
-/* Use the Material Design styles from your global theme */
 .projects-view {
-  height: 100%;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--mdc-theme-background, #fafafa);
+  background: #f5f5f5;
 }
 
-.breadcrumbs {
-  padding: 16px;
-  background: var(--mdc-theme-surface, #ffffff);
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: white;
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: var(--mdc-elevation-01);
+  z-index: 2;
+}
+
+.top-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.top-bar-left h1 {
+  margin: 0;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.view-switcher {
+  display: flex;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 8px;
+  padding: 4px;
+  gap: 2px;
+}
+
+.view-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  color: rgba(0, 0, 0, 0.6);
+  min-width: 80px;
+}
+
+.view-btn.active {
+  background: white;
+  color: var(--mdc-theme-primary, #1976d2);
   box-shadow: var(--mdc-elevation-01);
 }
 
-.breadcrumb {
-  cursor: pointer;
-  color: var(--mdc-theme-primary, #1976d2);
-  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+.view-btn:hover:not(.active) {
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.87);
 }
 
-.breadcrumb:hover {
-  color: var(--mdc-theme-primary-variant, #1565c0);
-  text-decoration: underline;
-}
-
-.view-content {
-  flex: 1;
-  padding: 16px;
-  overflow: auto;
-}
-
-.loading-state,
-.error-state,
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 32px;
-  text-align: center;
-}
-
-.loading-state .mdc-circular-progress {
-  margin-bottom: 16px;
-}
-
-.view-toolbar.mdc-card {
-  display: flex !important;
-  flex-direction: row !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  padding: 16px !important;
-  margin-bottom: 16px;
-  width: 100%;
-  box-sizing: border-box;
-  min-height: auto !important;
-}
-
-.view-toolbar.mdc-card h2 {
-  margin: 0 !important;
-  padding: 0 !important;
-  flex: 0 0 auto !important;
-  text-align: left !important;
-  align-self: center !important;
-  white-space: nowrap;
-  order: 1;
-}
-
-.view-toolbar.mdc-card .toolbar-actions {
-  display: flex !important;
-  gap: 8px;
-  margin-left: auto !important;
-  flex-shrink: 0 !important;
-  align-items: center !important;
-  order: 2;
-}
-
-.project-grid {
-  margin-bottom: 16px;
-}
-
-.project-name-cell {
-  padding: 4px 0;
-}
-
-.project-title {
-  cursor: pointer;
-  margin-bottom: 4px;
-  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.project-title:hover {
-  text-decoration: underline;
-}
-
-.project-id {
-  opacity: 0.7;
-}
-
-/* Priority chips */
-.priority-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 0 8px;
-  height: 24px;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-.priority-chip--critical {
-  background-color: #ffebee;
-  color: #c62828;
-  border: 1px solid #e57373;
-}
-
-.priority-chip--high {
-  background-color: #fff3e0;
-  color: #ef6c00;
-  border: 1px solid #ffb74d;
-}
-
-.priority-chip--medium {
-  background-color: #e8f5e8;
-  color: #2e7d32;
-  border: 1px solid #81c784;
-}
-
-.priority-chip--low {
-  background-color: #e3f2fd;
-  color: #1565c0;
-  border: 1px solid #64b5f6;
-}
-
-/* Progress container improvements */
-.progress-container {
+.top-bar-right {
   display: flex;
   align-items: center;
-  gap: 8px;
-  width: 100%;
-}
-
-.progress-linear {
-  flex: 1;
-  min-width: 60px;
-}
-
-.progress-text {
-  min-width: 35px;
-  text-align: right;
-  font-weight: 500;
-}
-
-.create-btn {
-  min-width: 40px !important;
-  width: 40px;
-  height: 40px;
-  padding: 0 !important;
-  border-radius: 50% !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--mdc-theme-primary, #1976d2) !important;
-  color: white !important;
-  box-shadow: var(--mdc-elevation-02) !important;
-}
-
-.create-btn:hover {
-  box-shadow: var(--mdc-elevation-04) !important;
-  transform: translateY(-1px);
-}
-
-.create-btn svg {
-  transition: transform 0.2s ease;
-}
-
-.create-btn:hover svg {
-  transform: scale(1.1);
-}
-
-.refresh-btn {
-  min-width: 40px !important;
-  width: 40px;
-  height: 40px;
-  padding: 0 !important;
-  border-radius: 50% !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.refresh-btn svg {
-  transition: transform 0.3s ease;
-}
-
-.refresh-btn:hover svg {
-  transform: rotate(90deg);
-}
-
-.refresh-btn:disabled svg {
-  opacity: 0.5;
-}
-
-.action-btn {
-  min-width: 36px !important;
-  width: 36px;
-  height: 36px;
-  padding: 0 !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.action-btn svg {
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
-}
-
-.action-btn:hover svg {
-  opacity: 1;
-}
-
-.projects-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 16px;
 }
 
-.project-card {
-  cursor: pointer;
-  transition: all 280ms cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 16px;
-}
-
-.project-card:hover {
-  box-shadow: var(--mdc-elevation-04);
-  transform: translateY(-2px);
-}
-
-.card-header {
+.search-filter-container {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
+  align-items: center;
+  gap: 12px;
+}
+
+.search-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  width: 300px;
+  padding: 8px 16px 8px 40px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+  transition: border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--mdc-theme-primary, #1976d2);
+}
+
+.search-input::placeholder {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  color: rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+.filter-controls {
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
 
-.card-header h3 {
-  margin: 0;
+.filter-select {
+  padding: 8px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+  background: white;
+  font-size: 14px;
+  cursor: pointer;
+  min-width: 120px;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--mdc-theme-primary, #1976d2);
+}
+
+.filter-clear-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(244, 67, 54, 0.08);
+  color: #f44336;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.filter-clear-btn:hover {
+  background: rgba(244, 67, 54, 0.16);
+}
+
+.main-content {
   flex: 1;
-}
-
-.card-body {
-  margin-bottom: 16px;
-}
-
-.project-description {
-  margin-bottom: 16px;
-  line-height: 1.4;
-}
-
-.project-meta {
+  padding: 16px 24px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-}
-
-.meta-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.card-footer {
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
-  padding-top: 16px;
-  text-align: center;
-}
-
-.roadmap-timeline {
-  position: relative;
-  margin-top: 16px;
-}
-
-.timeline-item {
-  position: relative;
-  margin-bottom: 24px;
-  padding-left: 40px;
-  cursor: pointer;
-}
-
-.timeline-marker {
-  position: absolute;
-  left: 0;
-  top: 8px;
-  width: 16px;
-  height: 16px;
-  background: var(--mdc-theme-primary, #1976d2);
-  border-radius: 50%;
-  box-shadow: var(--mdc-elevation-02);
-}
-
-.timeline-content {
-  padding: 16px;
-  transition: all 280ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.timeline-item:hover .timeline-content {
-  transform: translateX(8px);
-  box-shadow: var(--mdc-elevation-04);
-}
-
-.timeline-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 8px;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.milestones-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 8px;
-  margin-top: 16px;
-}
-
-.milestone-item {
-  padding: 8px;
-  cursor: pointer;
-  transition: all 280ms cubic-bezier(0.4, 0, 0.2, 1);
-  border-left: 4px solid var(--mdc-theme-primary, #1976d2);
-}
-
-.milestone-item:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--mdc-elevation-02);
-}
-
-.milestone-item h5 {
-  margin: 0 0 4px 0;
-}
-
-.milestone-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px;
 }
 
 /* Responsive Design */
-@media (max-width: 599px) {
-  .view-content {
-    padding: 8px;
+@media (max-width: 1200px) {
+  .search-input {
+    width: 250px;
   }
-  
-  .view-toolbar {
+}
+
+@media (max-width: 1024px) {
+  .top-bar {
     flex-direction: column;
-    gap: 8px;
     align-items: stretch;
+    gap: 16px;
   }
-  
-  .toolbar-actions {
+
+  .top-bar-left {
     justify-content: center;
   }
-  
-  .projects-cards,
-  .milestones-list {
-    grid-template-columns: 1fr;
+
+  .top-bar-right {
+    justify-content: center;
   }
 
-  .card-header {
+  .search-filter-container {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .search-input {
+    width: 200px;
+  }
+
+  .main-content {
+    padding: 12px 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .top-bar-left {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .view-switcher {
+    width: 100%;
+  }
+
+  .view-btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .search-filter-container {
+    flex-direction: column;
+    align-items: stretch;
     gap: 8px;
+    width: 100%;
   }
 
-  .timeline-item {
-    padding-left: 24px;
+  .search-field {
+    width: 100%;
   }
 
-  .timeline-marker {
-    width: 12px;
-    height: 12px;
+  .search-input {
+    width: 100%;
   }
 
-  .timeline-meta,
-  .milestone-meta {
-    flex-direction: column;
-    align-items: flex-start;
+  .filter-controls {
+    justify-content: center;
   }
+
+  .main-content {
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .top-bar {
+    padding: 12px 16px;
+  }
+
+  .view-btn span {
+    display: none;
+  }
+
+  .view-btn {
+    min-width: auto;
+    padding: 8px 12px;
+  }
+
+  .filter-select {
+    min-width: 100px;
+    font-size: 13px;
+  }
+}
+
+/* View transition animations */
+.view-transition-enter-active,
+.view-transition-leave-active {
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.view-transition-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.view-transition-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+/* Loading states */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+/* Custom scrollbar for main content */
+.main-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.main-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.main-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.main-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 </style>

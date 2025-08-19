@@ -1,4 +1,4 @@
-// composables/useToast.js - Toast Notifications Composable
+// composables/useToast.js - Toast Notification Composable
 import { useToast as useVueToastification } from 'vue-toastification'
 
 export function useToast() {
@@ -6,18 +6,11 @@ export function useToast() {
 
   const showToast = (message, type = 'info', options = {}) => {
     const defaultOptions = {
-      position: 'top-right',
-      timeout: 5000,
+      timeout: 4000,
       closeOnClick: true,
       pauseOnFocusLoss: true,
       pauseOnHover: true,
       draggable: true,
-      draggablePercent: 0.6,
-      showCloseButtonOnHover: false,
-      hideProgressBar: false,
-      closeButton: 'button',
-      icon: true,
-      rtl: false,
       ...options
     }
 
@@ -54,8 +47,12 @@ export function useToast() {
     showToast(message, 'info', options)
   }
 
-  const clearAll = () => {
+  const clear = () => {
     toast.clear()
+  }
+
+  const dismiss = (id) => {
+    toast.dismiss(id)
   }
 
   return {
@@ -64,6 +61,9 @@ export function useToast() {
     showError,
     showWarning,
     showInfo,
-    clearAll
+    clear,
+    dismiss,
+    // For backward compatibility
+    toast
   }
 }

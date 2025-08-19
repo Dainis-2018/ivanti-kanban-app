@@ -1,52 +1,58 @@
-// main.js - Application Entry Point with Proper Syncfusion Registration
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import App from './App.vue'
-import router from './router'
-
-// Syncfusion license registration
-import { registerLicense } from '@syncfusion/ej2-base'
-
-// Syncfusion Grid with required modules - use GridPlugin for proper initialization
-import { GridPlugin, Grid, Filter, Sort, Page, Reorder, Resize, ColumnChooser, ColumnMenu, Search, Selection } from '@syncfusion/ej2-vue-grids'
-
-// Other Syncfusion components
-import { RichTextEditorPlugin } from '@syncfusion/ej2-vue-richtexteditor'
-import { ButtonPlugin } from '@syncfusion/ej2-vue-buttons'
-import { DropDownListPlugin, MultiSelectPlugin } from '@syncfusion/ej2-vue-dropdowns'
-import { DatePickerPlugin, DateRangePickerPlugin } from '@syncfusion/ej2-vue-calendars'
-import { TextBoxPlugin } from '@syncfusion/ej2-vue-inputs'
-import { ToastPlugin } from '@syncfusion/ej2-vue-notifications'
-import { Schedule, Day, Week, WorkWeek, Month, Agenda, Resize as ScheduleResize, DragAndDrop } from '@syncfusion/ej2-vue-schedule'
-
-// Import Kanban component only (not plugin to avoid conflicts)
-import { Kanban } from '@syncfusion/ej2-vue-kanban'
-
-// Toast notifications
 import Toast from 'vue-toastification'
+import router from './router'
+import App from './App.vue'
+
+// Syncfusion Styles
+import '@syncfusion/ej2-base/styles/material.css'
+import '@syncfusion/ej2-buttons/styles/material.css'
+import '@syncfusion/ej2-calendars/styles/material.css'
+import '@syncfusion/ej2-dropdowns/styles/material.css'
+import '@syncfusion/ej2-inputs/styles/material.css'
+import '@syncfusion/ej2-navigations/styles/material.css'
+import '@syncfusion/ej2-popups/styles/material.css'
+import '@syncfusion/ej2-splitbuttons/styles/material.css'
+import '@syncfusion/ej2-grids/styles/material.css'
+import '@syncfusion/ej2-treegrid/styles/material.css'
+import '@syncfusion/ej2-gantt/styles/material.css'
+import '@syncfusion/ej2-kanban/styles/material.css'
+import '@syncfusion/ej2-richtexteditor/styles/material.css'
+import '@syncfusion/ej2-schedule/styles/material.css'
+import '@syncfusion/ej2-layouts/styles/material.css'
+import '@syncfusion/ej2-notifications/styles/material.css'
+
+// Syncfusion Plugins
+import { ButtonPlugin } from '@syncfusion/ej2-vue-buttons'
+import { CalendarPlugin, DatePickerPlugin, DateTimePickerPlugin } from '@syncfusion/ej2-vue-calendars'
+import { DropDownListPlugin, MultiSelectPlugin, ComboBoxPlugin } from '@syncfusion/ej2-vue-dropdowns'
+import { TextBoxPlugin, NumericTextBoxPlugin } from '@syncfusion/ej2-vue-inputs'
+import { TabPlugin, ToolbarPlugin } from '@syncfusion/ej2-vue-navigations'
+import { DialogPlugin, TooltipPlugin } from '@syncfusion/ej2-vue-popups'
+import { GridPlugin } from '@syncfusion/ej2-vue-grids'
+import { GanttPlugin } from '@syncfusion/ej2-vue-gantt'
+import { KanbanPlugin } from '@syncfusion/ej2-vue-kanban'
+import { RichTextEditorPlugin } from '@syncfusion/ej2-vue-richtexteditor'
+import { SchedulePlugin } from '@syncfusion/ej2-vue-schedule'
+import { DashboardLayoutPlugin, SplitterPlugin } from '@syncfusion/ej2-vue-layouts'
+import { ToastPlugin } from '@syncfusion/ej2-vue-notifications'
+
+// Vue Toastification styles
 import 'vue-toastification/dist/index.css'
 
-// Styles
+// Application styles
 import './assets/styles/main.css'
-import './assets/styles/syncfusion-theme.css'
 
-// Register Syncfusion license
-if (import.meta.env.VITE_SYNCFUSION_LICENSE_KEY) {
-  registerLicense(import.meta.env.VITE_SYNCFUSION_LICENSE_KEY)
-}
-
-// IMPORTANT: Inject Grid feature modules BEFORE creating the app
-Grid.Inject(Filter, Sort, Page, Reorder, Resize, ColumnChooser, ColumnMenu, Search, Selection)
-
-// Inject Schedule feature modules
-Schedule.Inject(Day, Week, WorkWeek, Month, Agenda, ScheduleResize, DragAndDrop)
-
+// Create Vue app
 const app = createApp(App)
+
+// Create Pinia store
+const pinia = createPinia()
 
 // Toast configuration
 const toastOptions = {
   position: 'top-right',
-  timeout: 5000,
+  timeout: 4000,
   closeOnClick: true,
   pauseOnFocusLoss: true,
   pauseOnHover: true,
@@ -56,45 +62,68 @@ const toastOptions = {
   hideProgressBar: false,
   closeButton: 'button',
   icon: true,
-  rtl: false
+  rtl: false,
+  transition: 'Vue-Toastification__bounce',
+  maxToasts: 20,
+  newestOnTop: true
 }
 
+// Register Syncfusion plugins
+app.use(ButtonPlugin)
+app.use(CalendarPlugin)
+app.use(DatePickerPlugin)
+app.use(DateTimePickerPlugin)
+app.use(DropDownListPlugin)
+app.use(MultiSelectPlugin)
+app.use(ComboBoxPlugin)
+app.use(TextBoxPlugin)
+app.use(NumericTextBoxPlugin)
+app.use(TabPlugin)
+app.use(ToolbarPlugin)
+app.use(DialogPlugin)
+app.use(TooltipPlugin)
+app.use(GridPlugin)
+app.use(GanttPlugin)
+app.use(KanbanPlugin)
+app.use(RichTextEditorPlugin)
+app.use(SchedulePlugin)
+app.use(DashboardLayoutPlugin)
+app.use(SplitterPlugin)
+app.use(ToastPlugin)
+
 // Register core plugins
-app.use(createPinia())
+app.use(pinia)
 app.use(router)
 app.use(Toast, toastOptions)
 
-// Register Syncfusion components in order
-// 1. Grid first (provides column components)
-app.use(GridPlugin)
-
-// 2. Other components that don't conflict
-app.use(RichTextEditorPlugin)
-app.use(ButtonPlugin)
-app.use(DropDownListPlugin)
-app.use(MultiSelectPlugin)
-app.use(DatePickerPlugin)
-app.use(DateRangePickerPlugin)
-app.use(TextBoxPlugin)
-app.use(ToastPlugin)
-
-// 3. Manual component registration for components with shared directives (like e-column)
-app.component('ejs-kanban', Kanban)
-app.component('ejs-schedule', Schedule)
-
-// Mount the application
-app.mount('#app')
-
-// Enable development tools
-if (import.meta.env.DEV) {
-  console.log('🚀 Ivanti Kanban App started in development mode')
-  console.log('📊 Syncfusion Grid modules injected:', [
-    'Filter', 'Sort', 'Page', 'Reorder', 'Resize', 'ColumnChooser', 'ColumnMenu', 'Search', 'Selection'
-  ])
-  console.log('🔧 Syncfusion components registered:')
-  console.log('  - GridPlugin (with e-column, e-columns)')
-  console.log('  - RichTextEditor, Button, DropDownList, MultiSelect')
-  console.log('  - DatePicker, DateRangePicker, TextBox, Toast, Schedule')
-  console.log('  - Kanban, Schedule (manual registration)')
-  console.log('✅ Application ready')
+// Syncfusion license registration
+// This will be set via environment variable in production
+if (import.meta.env.VITE_SYNCFUSION_LICENSE_KEY) {
+  const { registerLicense } = await import('@syncfusion/ej2-base')
+  registerLicense(import.meta.env.VITE_SYNCFUSION_LICENSE_KEY)
 }
+
+// Global error handler
+app.config.errorHandler = (error, instance, info) => {
+  console.error('Global error:', error)
+  console.error('Component:', instance)
+  console.error('Info:', info)
+  
+  // You can send error to logging service here
+  if (import.meta.env.PROD) {
+    // Send to error tracking service in production
+    console.error('Production error occurred:', { error, info })
+  }
+}
+
+// Global warning handler (only in development)
+if (import.meta.env.DEV) {
+  app.config.warnHandler = (msg, instance, trace) => {
+    console.warn('Vue warning:', msg)
+    console.warn('Component:', instance)
+    console.warn('Trace:', trace)
+  }
+}
+
+// Mount the app
+app.mount('#app')
