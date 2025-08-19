@@ -33,12 +33,14 @@ import { TextBoxPlugin, NumericTextBoxPlugin } from '@syncfusion/ej2-vue-inputs'
 import { TabPlugin, ToolbarPlugin } from '@syncfusion/ej2-vue-navigations'
 import { DialogPlugin, TooltipPlugin } from '@syncfusion/ej2-vue-popups'
 import { GridPlugin } from '@syncfusion/ej2-vue-grids'
-import { GanttPlugin } from '@syncfusion/ej2-vue-gantt'
-import { KanbanPlugin } from '@syncfusion/ej2-vue-kanban'
 import { RichTextEditorPlugin } from '@syncfusion/ej2-vue-richtexteditor'
 import { SchedulePlugin } from '@syncfusion/ej2-vue-schedule'
 import { DashboardLayoutPlugin, SplitterPlugin } from '@syncfusion/ej2-vue-layouts'
 import { ToastPlugin } from '@syncfusion/ej2-vue-notifications'
+import { KanbanPlugin } from '@syncfusion/ej2-vue-kanban'
+
+// Gantt Plugin with all required modules
+import { GanttPlugin } from '@syncfusion/ej2-vue-gantt'
 
 // Vue Toastification styles
 import 'vue-toastification/dist/index.css'
@@ -99,6 +101,10 @@ app.config.errorHandler = (error, instance, info) => {
 if (import.meta.env.DEV) {
   app.config.warnHandler = (msg, instance, trace) => {
     // Filter out common Syncfusion warnings that don't affect functionality
+    if (msg.includes('Module') && msg.includes('not available')) {
+      console.debug('Syncfusion module warning (handled):', msg)
+      return
+    }
     if (msg.includes('placeholder') || msg.includes('str.replace')) {
       console.debug('Syncfusion warning (handled):', msg)
       return
@@ -125,13 +131,16 @@ try {
   app.use(DialogPlugin)
   app.use(TooltipPlugin)
   app.use(GridPlugin)
-  app.use(GanttPlugin)
-  app.use(KanbanPlugin)
   app.use(RichTextEditorPlugin)
   app.use(SchedulePlugin)
   app.use(DashboardLayoutPlugin)
   app.use(SplitterPlugin)
   app.use(ToastPlugin)
+  app.use(KanbanPlugin)
+  
+  // Register Gantt plugin with complete module configuration
+  app.use(GanttPlugin)
+  
 } catch (syncfusionError) {
   console.error('Failed to register Syncfusion plugins:', syncfusionError)
 }

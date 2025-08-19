@@ -16,6 +16,12 @@ export const ENDPOINTS = {
   USERS: 'employees'
 }
 
+// OData entity endpoints
+export const CATEGORIES = {
+  PROJECT: 'frs_project',
+  MILESTONE: 'frs_prj_phase'
+}
+
 // Ivanti relationship field mappings
 export const RELATIONSHIP_FIELDS = {
   // Projects to Milestones
@@ -237,8 +243,8 @@ export class ODataService {
   // Get milestones by project using RecId relationship
   static async getMilestonesByProjectRecId(projectRecId) {
     const query = this.createQuery()
-      .select('RecId,PhaseId,PhaseName,Status,StartDate,EndDate,ProjectLink_RecID')
-      .filter(`ProjectLink_RecID eq '${projectRecId}' and ProjectLink_Category eq '${ENDPOINTS.PROJECTS}'`)
+      .select('RecId,PhaseNumber,PhaseTitle,Status,PlannedStartDate,PlannedEndDate,ProjectLink_RecID')
+      .filter(`ProjectLink_RecID eq '${projectRecId}' and ProjectLink_Category eq '${CATEGORIES.PROJECT}'`)
       .orderBy('StartDate')
     
     return await this.getAll(ENDPOINTS.MILESTONES, query)
@@ -254,8 +260,8 @@ export class ODataService {
   // Get tasks by milestone using RecId relationship
   static async getTasksByMilestoneRecId(milestoneRecId) {
     const query = this.createQuery()
-      .select('RecId,TaskId,TaskName,Status,Priority,AssignedTo,Team,Description,StartDate,DueDate,ParentLink_RecID')
-      .filter(`ParentLink_RecID eq '${milestoneRecId}' and ParentLink_Category eq '${ENDPOINTS.MILESTONES}'`)
+      .select('RecId,AssignmentID,Subject,Status,Priority,Owner,OwnerTeam,Details,PlannedStartDate,PlannedEndDate,ParentLink_RecID')
+      .filter(`ParentLink_RecID eq '${milestoneRecId}' and ParentLink_Category eq '${CATEGORIES.MILESTONE}'`)
       .orderBy('Priority desc, StartDate')
     
     return await this.getAll(ENDPOINTS.TASKS, query)
@@ -271,8 +277,8 @@ export class ODataService {
   // Get tasks by project using RecId relationship
   static async getTasksByProjectRecId(projectRecId) {
     const query = this.createQuery()
-      .select('RecId,TaskId,TaskName,Status,Priority,AssignedTo,Team,Description,ProjectLink_RecID')
-      .filter(`ProjectLink_RecID eq '${projectRecId}' and ProjectLink_Category eq '${ENDPOINTS.PROJECTS}'`)
+      .select('RecId,AssignmentID,Subject,Status,Priority,Owner,OwnerTeam,Details,ProjectLink_RecID')
+      .filter(`ProjectLink_RecID eq '${projectRecId}' and ProjectLink_Category eq '${CATEGORIES.PROJECT}'`)
       .orderBy('Priority desc, StartDate')
     
     return await this.getAll(ENDPOINTS.TASKS, query)

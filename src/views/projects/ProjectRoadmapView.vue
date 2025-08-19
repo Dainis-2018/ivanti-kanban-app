@@ -109,7 +109,7 @@
           :allowReordering="true"
           :allowResizing="true"
           :allowFiltering="true"
-          :showColumnMenu="true"
+          :showColumnMenu="false"
           :allowExcelExport="true"
           :allowPdfExport="true"
           :height="ganttHeight"
