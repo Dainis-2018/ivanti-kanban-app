@@ -245,7 +245,7 @@ export class ODataService {
     const query = this.createQuery()
       .select('RecId,PhaseNumber,PhaseTitle,Status,PlannedStartDate,PlannedEndDate,ProjectLink_RecID')
       .filter(`ProjectLink_RecID eq '${projectRecId}' and ProjectLink_Category eq '${CATEGORIES.PROJECT}'`)
-      .orderBy('StartDate')
+      .orderBy('PlannedStartDate')
     
     return await this.getAll(ENDPOINTS.MILESTONES, query)
   }
@@ -262,7 +262,7 @@ export class ODataService {
     const query = this.createQuery()
       .select('RecId,AssignmentID,Subject,Status,Priority,Owner,OwnerTeam,Details,PlannedStartDate,PlannedEndDate,ParentLink_RecID')
       .filter(`ParentLink_RecID eq '${milestoneRecId}' and ParentLink_Category eq '${CATEGORIES.MILESTONE}'`)
-      .orderBy('Priority desc, StartDate')
+      .orderBy('Priority desc, PlannedStartDate')
     
     return await this.getAll(ENDPOINTS.TASKS, query)
   }
@@ -279,7 +279,7 @@ export class ODataService {
     const query = this.createQuery()
       .select('RecId,AssignmentID,Subject,Status,Priority,Owner,OwnerTeam,Details,ProjectLink_RecID')
       .filter(`ProjectLink_RecID eq '${projectRecId}' and ProjectLink_Category eq '${CATEGORIES.PROJECT}'`)
-      .orderBy('Priority desc, StartDate')
+      .orderBy('Priority desc, PlannedStartDate')
     
     return await this.getAll(ENDPOINTS.TASKS, query)
   }

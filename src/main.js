@@ -1,3 +1,5 @@
+// src/main.js - Updated to include passive event listener optimization
+
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import Toast from 'vue-toastification'
@@ -6,6 +8,9 @@ import App from './App.vue'
 
 // Initialize localization first to prevent undefined values
 import { initializeLocalization } from '@/composables/useLocalization'
+
+// Performance optimization for touch events
+import { initializePerformanceOptimizations } from '@/utils/passiveEventFix'
 
 // Syncfusion Styles
 import '@syncfusion/ej2-base/styles/material.css'
@@ -47,6 +52,10 @@ import 'vue-toastification/dist/index.css'
 
 // Application styles
 import './assets/styles/main.css'
+
+// IMPORTANT: Initialize performance optimizations EARLY
+// This must be done before creating the Vue app to ensure proper event handling
+initializePerformanceOptimizations()
 
 // Create Vue app
 const app = createApp(App)
@@ -107,6 +116,11 @@ if (import.meta.env.DEV) {
     }
     if (msg.includes('placeholder') || msg.includes('str.replace')) {
       console.debug('Syncfusion warning (handled):', msg)
+      return
+    }
+    // Filter out passive event listener warnings as they're now handled globally
+    if (msg.includes('passive') || msg.includes('touchmove')) {
+      console.debug('Touch event warning (optimized):', msg)
       return
     }
     console.warn('Vue warning:', msg)
@@ -175,7 +189,7 @@ async function mountApp() {
     // Mount the app
     app.mount('#app')
     
-    console.log('Ivanti Kanban App mounted successfully')
+    console.log('✅ Ivanti Kanban App mounted successfully with performance optimizations')
   } catch (mountError) {
     console.error('Failed to mount application:', mountError)
     
